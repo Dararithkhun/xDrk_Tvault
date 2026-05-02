@@ -492,9 +492,9 @@ tr:hover td{background:var(--bg3)}
     <button class="btn btn-s btn-sm" onclick="setRange('all')">All</button>
   </div>
   <div class="sgrid" id="st-cards"></div>
-  <div class="crow c2"><div class="cbox"><h3>Equity Curve</h3><canvas id="eq-ch" height="180"></canvas></div><div class="cbox"><h3>Win / Loss / BE</h3><canvas id="pie-ch" height="180"></canvas></div></div>
-  <div class="crow c22"><div class="cbox"><h3>P&L by Day of Week</h3><canvas id="dow-ch" height="160"></canvas></div><div class="cbox"><h3>P&L by Session</h3><canvas id="ses-ch" height="160"></canvas></div></div>
-  <div class="crow c22"><div class="cbox"><h3>P&L by Grade</h3><canvas id="grade-ch" height="150"></canvas></div><div class="cbox"><h3>P&L by Emotion</h3><canvas id="emo-ch" height="150"></canvas></div></div>
+  <div class="crow c2"><div class="cbox"><h3>Equity Curve</h3><div style="position:relative;height:180px"><canvas id="eq-ch"></canvas></div></div><div class="cbox"><h3>Win / Loss / BE</h3><div style="position:relative;height:180px"><canvas id="pie-ch"></canvas></div></div></div>
+  <div class="crow c22"><div class="cbox"><h3>P&L by Day of Week</h3><div style="position:relative;height:160px"><canvas id="dow-ch"></canvas></div></div><div class="cbox"><h3>P&L by Session</h3><div style="position:relative;height:160px"><canvas id="ses-ch"></canvas></div></div></div>
+  <div class="crow c22"><div class="cbox"><h3>P&L by Grade</h3><div style="position:relative;height:150px"><canvas id="grade-ch"></canvas></div></div><div class="cbox"><h3>P&L by Emotion</h3><div style="position:relative;height:150px"><canvas id="emo-ch"></canvas></div></div></div>
   <div class="crow c22">
     <div class="cbox"><h3>Detailed Stats</h3><div id="detail-stats"></div></div>
     <div style="display:grid;grid-template-rows:1fr 1fr;gap:14px">
@@ -592,7 +592,7 @@ tr:hover td{background:var(--bg3)}
   <div id="comp-accounts" class="comp-grid"></div>
   <div class="cbox" style="margin-top:14px" id="comp-chart-wrap">
     <h3>Growth Comparison</h3>
-    <canvas id="comp-ch" height="160"></canvas>
+    <div style="position:relative;height:220px"><canvas id="comp-ch"></canvas></div>
   </div>
 </div>
 
@@ -650,8 +650,8 @@ tr:hover td{background:var(--bg3)}
     <div class="sgrid" id="bt-stats-cards" style="margin-bottom:14px"></div>
     <!-- Charts -->
     <div class="crow c22">
-      <div class="cbox"><h3>Total Equity</h3><canvas id="bt-total-ch" height="160"></canvas></div>
-      <div class="cbox"><h3>By Session</h3><canvas id="bt-session-ch" height="160"></canvas></div>
+      <div class="cbox"><h3>Total Equity</h3><div style="position:relative;height:180px"><canvas id="bt-total-ch"></canvas></div></div>
+      <div class="cbox"><h3>By Session</h3><div style="position:relative;height:180px"><canvas id="bt-session-ch"></canvas></div></div>
     </div>
     <!-- Session breakdown table -->
     <div class="cbox" style="margin-top:14px">
