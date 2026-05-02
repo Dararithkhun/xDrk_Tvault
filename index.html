@@ -157,15 +157,15 @@ tr:hover td{background:var(--bg3)}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
 /* ── LIVE TICKER BAR ── */
-#ticker-bar{background:var(--bg3);border-bottom:1px solid var(--border);padding:5px 12px;display:flex;align-items:center;gap:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;min-height:32px}
+#ticker-bar{background:var(--bg3);border-bottom:1px solid var(--border);padding:5px 12px;display:flex;align-items:center;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;min-height:32px;white-space:nowrap}
 #ticker-bar::-webkit-scrollbar{display:none}
-#ticker-inner{display:flex;align-items:center;gap:0;flex-wrap:nowrap;flex:1;min-width:0}
-.tick-item{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-right:1px solid var(--border);flex-shrink:0}
-.tick-sym{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.3px}
-.tick-price{font-size:12px;font-weight:700}
-.tick-chg{font-size:10px;font-weight:600}
-.tick-src{font-size:9px;color:var(--border);margin-left:1px}
-.tick-meta{margin-left:auto;display:flex;align-items:center;gap:6px;padding-left:10px;flex-shrink:0}
+#ticker-inner{display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;flex:1;min-width:0}
+.tick-item{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-right:1px solid var(--border);flex-shrink:0;white-space:nowrap}
+.tick-sym{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.tick-price{font-size:12px;font-weight:700;white-space:nowrap}
+.tick-chg{font-size:10px;font-weight:600;white-space:nowrap}
+.tick-src{font-size:9px;color:var(--border);margin-left:1px;white-space:nowrap}
+.tick-meta{margin-left:auto;display:flex;align-items:center;gap:6px;padding-left:10px;flex-shrink:0;white-space:nowrap}
 .tick-time{font-size:10px;color:var(--muted);white-space:nowrap}
 .tick-dot{font-size:9px;color:var(--green);animation:pulse 2s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
@@ -194,6 +194,12 @@ tr:hover td{background:var(--bg3)}
 /* ── Layout class helpers (replace inline styles) ── */
 .calc-wrap{display:grid;grid-template-columns:360px 1fr;gap:18px}
 .comp-wrap{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:16px}
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:4px}
+.comp-account{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px}
+.comp-account-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.comp-account-title{font-weight:700;font-size:14px}
+.comp-account-delete{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px}
+.comp-account-delete:hover{color:var(--red);background:var(--rdim)}
 .cal-grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 
 /* ══════════════════════════════════════════════════
@@ -280,6 +286,18 @@ tr:hover td{background:var(--bg3)}
 
   /* Stats filter toolbar */
   #tab-stats .toolbar{flex-wrap:wrap}
+
+  /* Backtester */
+  #bt-outcomes{grid-template-columns:1fr 1fr!important}
+  /* Comp grid */
+  .comp-grid{grid-template-columns:1fr}
+}
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVE — MEDIUM MOBILE (≤ 640px)
+══════════════════════════════════════════════════ */
+@media(max-width:640px){
+  .tb{padding:8px 7px}
 }
 
 /* ══════════════════════════════════════════════════
@@ -388,9 +406,11 @@ tr:hover td{background:var(--bg3)}
     <button class="tb" onclick="showTab('calendar',this)">📅 <span class="tb-lbl">Calendar</span></button>
     <button class="tb" onclick="showTab('stats',this)">📊 <span class="tb-lbl">Stats</span></button>
     <button class="tb" onclick="showTab('chart',this)">📈 <span class="tb-lbl">Chart</span></button>
+    <button class="tb" onclick="showTab('calendar-eco',this)">📰 <span class="tb-lbl">News</span></button>
     <button class="tb" onclick="showTab('calc',this)">🧮 <span class="tb-lbl">Calc</span></button>
     <button class="tb" onclick="showTab('comp',this)">📈 <span class="tb-lbl">Compound</span></button>
     <button class="tb" onclick="showTab('diary',this)">📓 <span class="tb-lbl">Diary</span></button>
+    <button class="tb" onclick="showTab('backtest',this)">🔬 <span class="tb-lbl">Backtest</span></button>
     <button class="tb" onclick="showTab('settings',this)">⚙️ <span class="tb-lbl">Settings</span></button>
   </div>
   <div class="nav-end">
@@ -499,11 +519,27 @@ tr:hover td{background:var(--bg3)}
     <button class="btn btn-p" onclick="loadChart()">Load Chart</button>
     <span id="ch-info" style="font-size:12px;color:var(--muted)"></span>
   </div>
-  <div id="ch-watchlist" class="wl-grid" style="margin-bottom:16px"></div>
+  <div id="ch-watchlist" class="wl-grid" style="margin-bottom:10px"></div>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+    <input type="text" id="wl-input" placeholder="Add symbol e.g. BTCUSDT" style="width:180px;text-transform:uppercase" onkeydown="if(event.key==='Enter')addWatchlist()">
+    <button class="btn btn-s btn-sm" onclick="addWatchlist()">+ Add</button>
+    <button class="btn btn-d btn-sm" onclick="clearWatchlist()" style="margin-left:auto">Clear All</button>
+  </div>
   <div class="cbox" style="padding:0;overflow:hidden;position:relative">
     <div id="chart-wrap" style="height:460px;width:100%"></div>
   </div>
   <div id="ch-trade-list" style="margin-top:14px"></div>
+</div>
+
+<!-- ECONOMIC CALENDAR -->
+<div id="tab-calendar-eco" class="tab">
+  <div class="section-title">Economic Calendar</div>
+  <div class="section-sub">Live forex &amp; crypto market events — powered by TradingView</div>
+  <div id="eco-cal-wrap">
+    <div class="tradingview-widget-container" style="height:650px">
+      <div class="tradingview-widget-container__widget" style="height:100%"></div>
+    </div>
+  </div>
 </div>
 
 <!-- CALCULATOR -->
@@ -547,33 +583,17 @@ tr:hover td{background:var(--bg3)}
 
 <!-- COMPOUNDING -->
 <div id="tab-comp" class="tab">
-  <div class="section-title">Compounding Tracker</div>
-  <div class="section-sub">Model account growth over time</div>
-  <div class="comp-wrap">
-    <div><div class="cbox" style="margin-bottom:10px">
-      <div style="font-weight:700;color:var(--purple);margin-bottom:10px">🔷 Crypto Account</div>
-      <div class="fgrid f2" style="gap:8px">
-        <div class="fg"><label>Capital ($)</label><input type="number" id="cc-c" value="1000" oninput="renderComp()"></div>
-        <div class="fg"><label>Risk %</label><input type="number" id="cc-r" value="1" step="0.1" oninput="renderComp()"></div>
-        <div class="fg"><label>R:R</label><input type="number" id="cc-rr" value="2" step="0.5" oninput="renderComp()"></div>
-        <div class="fg"><label>Win Rate %</label><input type="number" id="cc-w" value="50" oninput="renderComp()"></div>
-        <div class="fg full"><label>Trades</label><input type="number" id="cc-n" value="20" oninput="renderComp()"></div>
-      </div></div>
-      <div class="twrap"><table style="font-size:12px"><thead><tr><th>#</th><th>Capital</th><th>Risk</th><th>Gain Potential</th><th>Balance</th></tr></thead><tbody id="cc-tb"></tbody></table></div>
-    </div>
-    <div><div class="cbox" style="margin-bottom:10px">
-      <div style="font-weight:700;color:var(--blue);margin-bottom:10px">💹 Forex Account</div>
-      <div class="fgrid f2" style="gap:8px">
-        <div class="fg"><label>Capital ($)</label><input type="number" id="fc-c" value="1000" oninput="renderComp()"></div>
-        <div class="fg"><label>Risk %</label><input type="number" id="fc-r" value="0.9" step="0.1" oninput="renderComp()"></div>
-        <div class="fg"><label>R:R</label><input type="number" id="fc-rr" value="2" step="0.5" oninput="renderComp()"></div>
-        <div class="fg"><label>Win Rate %</label><input type="number" id="fc-w" value="50" oninput="renderComp()"></div>
-        <div class="fg full"><label>Trades</label><input type="number" id="fc-n" value="20" oninput="renderComp()"></div>
-      </div></div>
-      <div class="twrap"><table style="font-size:12px"><thead><tr><th>#</th><th>Capital</th><th>Risk</th><th>Gain Potential</th><th>Balance</th></tr></thead><tbody id="fc-tb"></tbody></table></div>
-    </div>
+  <div class="section-title">Compounding</div>
+  <div class="section-sub">Model account growth — add as many scenarios as you want</div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+    <button class="btn btn-p" onclick="addCompAccount()">+ Add Account</button>
+    <span style="color:var(--muted);font-size:12px">Click any account to edit · Delete removes it from the list</span>
   </div>
-  <div class="cbox"><h3>Growth Comparison</h3><canvas id="comp-ch" height="160"></canvas></div>
+  <div id="comp-accounts" class="comp-grid"></div>
+  <div class="cbox" style="margin-top:14px" id="comp-chart-wrap">
+    <h3>Growth Comparison</h3>
+    <canvas id="comp-ch" height="160"></canvas>
+  </div>
 </div>
 
 <!-- DIARY -->
@@ -583,6 +603,61 @@ tr:hover td{background:var(--bg3)}
   <div class="diary-layout">
     <div><button class="btn btn-p" style="width:100%;margin-bottom:10px" onclick="newDiary()">+ New Entry</button><div class="diary-list" id="diary-list"></div></div>
     <div class="cbox" id="diary-editor"><div style="color:var(--muted);text-align:center;padding:40px">Select or create a diary entry</div></div>
+  </div>
+</div>
+
+<!-- BACKTESTER -->
+<div id="tab-backtest" class="tab">
+  <div class="section-title">Backtester</div>
+  <div class="section-sub">Session-based strategy backtesting with live equity curves</div>
+  <div id="bt-wrap">
+    <!-- Settings row -->
+    <div class="crow c22" style="margin-bottom:14px">
+      <div class="cbox">
+        <h3>Trade Settings</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><label style="color:var(--muted);font-size:13px">Win R-Value</label><input type="number" step="0.1" id="bt-winR" value="3" style="width:80px" oninput="btRecalc()"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><label style="color:var(--muted);font-size:13px">Loss R-Value</label><input type="number" step="0.1" id="bt-lossR" value="-1" style="width:80px" oninput="btRecalc()"></div>
+        </div>
+      </div>
+      <div class="cbox">
+        <h3>Financial Settings</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><label style="color:var(--muted);font-size:13px">Initial Capital ($)</label><input type="number" id="bt-cap" value="100" style="width:90px" oninput="btRecalc()"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <label style="color:var(--muted);font-size:13px">Risk Mode</label>
+            <select id="bt-riskMode" onchange="btToggleRisk()" style="width:120px">
+              <option value="constant">Fixed $</option>
+              <option value="percentage">% of Balance</option>
+            </select>
+          </div>
+          <div id="bt-fixedRow" style="display:flex;justify-content:space-between;align-items:center"><label style="color:var(--muted);font-size:13px">Risk Amount ($)</label><input type="number" id="bt-fixedRisk" value="10" style="width:80px" oninput="btRecalc()"></div>
+          <div id="bt-pctRow" style="display:none;justify-content:space-between;align-items:center"><label style="color:var(--muted);font-size:13px">Risk %</label><input type="number" id="bt-pctRisk" value="2" style="width:80px" oninput="btRecalc()"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Active session card -->
+    <div id="bt-session-card" class="cbox" style="text-align:center;margin-bottom:14px">
+      <div id="bt-session-name" style="font-size:18px;font-weight:700;margin-bottom:12px;color:var(--blue)">Asia Session</div>
+      <div id="bt-outcomes" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px"></div>
+      <div style="display:flex;justify-content:center;gap:10px">
+        <button class="btn btn-d" id="bt-back" onclick="btBack()">← Back</button>
+        <button class="btn btn-s" id="bt-forward" onclick="btForward()">Forward →</button>
+        <button class="btn btn-p" onclick="btRestart()">↺ Restart</button>
+      </div>
+    </div>
+    <!-- Stats -->
+    <div class="sgrid" id="bt-stats-cards" style="margin-bottom:14px"></div>
+    <!-- Charts -->
+    <div class="crow c22">
+      <div class="cbox"><h3>Total Equity</h3><canvas id="bt-total-ch" height="160"></canvas></div>
+      <div class="cbox"><h3>By Session</h3><canvas id="bt-session-ch" height="160"></canvas></div>
+    </div>
+    <!-- Session breakdown table -->
+    <div class="cbox" style="margin-top:14px">
+      <h3>Session Breakdown</h3>
+      <div class="twrap"><table><thead><tr><th>Outcome</th><th>Asia</th><th>London</th><th>New York</th><th>Total</th></tr></thead><tbody id="bt-table"></tbody></table></div>
+    </div>
   </div>
 </div>
 
@@ -625,14 +700,16 @@ tr:hover td{background:var(--bg3)}
       <div id="strategies-list"></div>
       <button class="btn btn-s btn-sm" style="margin-top:8px" onclick="addStrategy()">+ Add Strategy</button>
     </div>
-    <div class="settings-section"><div class="settings-title">📡 Watchlist</div>
-      <div style="color:var(--muted);font-size:12px;margin-bottom:10px">Symbols always shown in the live ticker — add any pair you follow (e.g. BTCUSDT, EURUSD, XAUUSD)</div>
-      <div id="watchlist-list"></div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <input type="text" id="wl-input" placeholder="e.g. BTCUSDT" style="flex:1;text-transform:uppercase" onkeydown="if(event.key==='Enter')addWatchlist()">
-        <button class="btn btn-s btn-sm" onclick="addWatchlist()">+ Add</button>
-      </div>
-    </div>
+    <div class="settings-section">
+  <div class="settings-title">🔐 Security</div>
+  <div style="color:var(--muted);font-size:12px;margin-bottom:10px">Logged in as: <strong id="s-email" style="color:var(--text)"></strong></div>
+  <div class="fgrid f2" style="gap:10px">
+    <div class="fg"><label>New Password</label><input type="password" id="s-np" placeholder="Min 6 characters"></div>
+    <div class="fg"><label>Confirm Password</label><input type="password" id="s-np2" placeholder="Repeat password"></div>
+  </div>
+  <button class="btn btn-s" style="margin-top:10px" onclick="changePassword()">Update Password</button>
+  <div id="pw-msg" style="margin-top:6px;font-size:12px"></div>
+</div>
     <div class="settings-section"><div class="settings-title" style="color:var(--red)">⚠️ Danger Zone</div>
       <div style="display:flex;gap:10px">
         <button class="btn btn-d" onclick="resetTrades()">Reset All Trades</button>
@@ -652,7 +729,7 @@ tr:hover td{background:var(--bg3)}
       <div class="fgrid f4" style="gap:10px">
         <div class="fg"><label>Status</label><select id="f-status"><option>Open</option><option>Finished</option><option>Cancelled</option></select></div>
         <div class="fg"><label>Asset Type</label><select id="f-asset" onchange="updatePrefix()"><option>Crypto</option><option>Gold (XAUUSD)</option><option>Silver (XAGUSD)</option><option>Major (XXX/USD)</option><option>Major (USD/XXX)</option><option>Minor / Cross</option><option>Stock Index CFDs</option><option>Stocks</option><option>Oil / Energy</option></select></div>
-        <div class="fg"><label>Symbol</label><input type="text" id="f-sym" placeholder="e.g. ETHUSDT"></div>
+        <div class="fg"><label>Symbol</label><input type="text" id="f-sym" placeholder="e.g. ETHUSDT" oninput="this.value=this.value.toUpperCase()" style="text-transform:uppercase"></div>
         <div class="fg"><label>Direction</label><select id="f-dir"><option>Long</option><option>Short</option></select></div>
       </div>
       <div class="fgrid f4" style="gap:10px;margin-top:10px">
@@ -712,6 +789,9 @@ function toggleTheme(){
   document.getElementById('theme-btn').textContent=document.documentElement.getAttribute('data-theme')==='light'?'🌙':'☀️';
   // Rebuild chart with new theme colors if open
   if(_chart&&document.getElementById('ch-sym')?.value) loadChart();
+  // Reload eco calendar with new theme
+  const ecoWrap=document.querySelector('#eco-cal-wrap .tradingview-widget-container__widget');
+  if(ecoWrap){ecoWrap.innerHTML='';loadEcoCalendar();}
 }
 function initTheme(){
   const saved=localStorage.getItem('tv_theme');
@@ -1057,6 +1137,7 @@ function removeWatchlist(i){
   loadWatchlistUI();
   startPriceFeed();
 }
+function clearWatchlist(){if(confirm('Remove all watchlist symbols?')){localStorage.removeItem('tv_watchlist');renderWatchlistCards();startPriceFeed();}}
 
 // ── CUSTOM SESSIONS & STRATEGIES ───────────────────────────
 const DEFAULT_SESSIONS=['Asian','Asian/London Overlap','London','London/NY Overlap','New York'];
@@ -1222,6 +1303,8 @@ async function showTab(name,btn){
   else if(name==='settings'){await loadSettings();}
   else if(name==='calc'){calcIt();qrCalc();}
   else if(name==='chart'){renderWatchlistCards();if(document.getElementById('ch-sym').value)loadChart();}
+  else if(name==='backtest'){initBacktester();}
+  else if(name==='calendar-eco'){loadEcoCalendar();}
   setLoader(false);
 }
 
@@ -1467,8 +1550,227 @@ async function renderStats(){
 function calcIt(){const ep=parseFloat(document.getElementById('c-ep').value),sp=parseFloat(document.getElementById('c-sp').value),bal=parseFloat(document.getElementById('c-bal').value)||1000,rp=parseFloat(document.getElementById('c-rp').value)||1,raI=parseFloat(document.getElementById('c-ra').value),rr=parseFloat(document.getElementById('c-rr').value)||2,inst=document.getElementById('c-inst').value,dir=document.getElementById('c-dir').value;const ra=isNaN(raI)?bal*(rp/100):raI;if(isNaN(ep)||isNaN(sp)||!ep||!sp){document.getElementById('c-result').innerHTML='<div style="color:var(--muted);text-align:center">Enter entry & stop prices</div>';return;}const dist=Math.abs(ep-sp);let sz=null,sl='Units',pv=null;if(inst==='Gold (XAUUSD)'){sz=ra/(dist*100);pv=sz*100*ep;sl='Lots';}else if(inst==='Major (XXX/USD)'){const pips=dist*10000;sz=ra/(pips*10/100000*100000);pv=sz*100000;sl='Lots';}else if(inst==='Major (USD/XXX)'){const pips=dist*100;sz=ra/(pips*(0.01/ep)*100000);pv=sz*100000;sl='Lots';}else{sz=ra/dist;pv=sz*ep;}const tp=dir==='Long'?ep+(dist*rr):ep-(dist*rr);document.getElementById('c-result').innerHTML=[['Risk Amount','$'+f2(ra),''],['Distance','$'+f2(dist,5),''],['Position Size',`<strong style="color:var(--blue);font-size:17px">${f2(sz,4)} ${sl}</strong>`,''],['Position Value','$'+f2(pv),''],['Take Profit',f2(tp,5),'pos'],['Potential Profit ('+rr+'R)','+$'+f2(ra*rr),'pos']].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">${l}</span><span class="${c}">${v}</span></div>`).join('');}
 function qrCalc(){const b=parseFloat(document.getElementById('qr-b').value)||1000,p=parseFloat(document.getElementById('qr-p').value)||1;document.getElementById('qr-main').textContent='$'+f2(b*p/100);document.getElementById('qr-grid').innerHTML=[0.5,1,1.5,2,3].map(pct=>`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:7px;text-align:center"><div style="font-size:10px;color:var(--muted)">${pct}%</div><div style="font-weight:700;color:var(--yellow);font-size:13px">$${f2(b*pct/100)}</div></div>`).join('');}
 
-// ── COMPOUNDING ────────────────────────────────────────────
-function renderComp(){[['cc','#bc8cff'],['fc','#58a6ff']].forEach(([p,clr])=>{const cap=parseFloat(document.getElementById(`${p}-c`).value)||1000,rsk=parseFloat(document.getElementById(`${p}-r`).value)||1,rr=parseFloat(document.getElementById(`${p}-rr`).value)||2,wr=parseFloat(document.getElementById(`${p}-w`).value)||50,n=parseInt(document.getElementById(`${p}-n`).value)||20;let C=cap;const ca=[cap],rows=[];for(let i=1;i<=n;i++){const r=C*(rsk/100),g=r*rr,ep=(wr/100)*g-(1-wr/100)*r;C+=ep;ca.push(+C.toFixed(2));rows.push(`<tr><td style="color:var(--muted)">${i}</td><td>$${f2(C-ep)}</td><td style="color:var(--red)">$${f2(r)}</td><td style="color:var(--green)">$${f2(g)}</td><td style="font-weight:700;color:${C>=cap?'var(--green)':'var(--red)'}">$${f2(C)}</td></tr>`);}document.getElementById(`${p}-tb`).innerHTML=rows.join('');window[`_c_${p}`]={la:Array.from({length:n+1},(_,i)=>'T'+i),da:ca,cl:clr};});dChart('comp-ch');_charts['comp-ch']=new Chart(document.getElementById('comp-ch').getContext('2d'),{type:'line',data:{labels:window._c_cc.la,datasets:[{label:'Crypto',data:window._c_cc.da,borderColor:window._c_cc.cl,backgroundColor:'rgba(188,140,255,.08)',borderWidth:2,fill:true,tension:.4,pointRadius:2},{label:'Forex',data:window._c_fc.da,borderColor:window._c_fc.cl,backgroundColor:'rgba(88,166,255,.08)',borderWidth:2,fill:true,tension:.4,pointRadius:2}]},options:{responsive:true,plugins:{legend:{labels:{color:'#8b949e'}}},scales:{x:{ticks:{color:'#8b949e'},grid:{display:false}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}});}
+// ── COMPOUNDING (dynamic) ─────────────────────────────────
+const DEFAULT_COMP_ACCOUNTS=[
+  {id:'c1',name:'Crypto Account',color:'#bc8cff',capital:1000,risk:1,rr:2,winRate:50,trades:20},
+  {id:'c2',name:'Forex Account',color:'#58a6ff',capital:1000,risk:0.9,rr:2,winRate:50,trades:20},
+];
+function getCompAccounts(){
+  const saved=localStorage.getItem('tv_comp_accounts');
+  return saved?JSON.parse(saved):[...DEFAULT_COMP_ACCOUNTS.map(a=>({...a}))];
+}
+function saveCompAccounts(accounts){localStorage.setItem('tv_comp_accounts',JSON.stringify(accounts));}
+function addCompAccount(){
+  const accounts=getCompAccounts();
+  const colors=['#3fb950','#f85149','#d29922','#f0883e','#bc8cff','#58a6ff'];
+  const newAcc={id:'c'+Date.now(),name:'New Account',color:colors[accounts.length%colors.length],capital:1000,risk:1,rr:2,winRate:50,trades:20};
+  accounts.push(newAcc);saveCompAccounts(accounts);renderComp();
+}
+function deleteCompAccount(id){
+  const accounts=getCompAccounts().filter(a=>a.id!==id);
+  saveCompAccounts(accounts);renderComp();
+}
+function compRows(cap,risk,rr,wr,n){
+  const rows=[];let bal=cap;
+  for(let i=1;i<=n;i++){
+    const r=bal*risk/100;const gain=r*rr;
+    const expectedBal=bal+(wr/100*gain)-(1-wr/100)*r;
+    rows.push({n:i,cap:bal,risk:r,gain,bal:expectedBal});
+    bal=expectedBal;
+  }return rows;
+}
+function renderComp(){
+  const accounts=getCompAccounts();
+  const el=document.getElementById('comp-accounts');
+  if(!el)return;
+  el.innerHTML=accounts.map(a=>`
+    <div class="comp-account">
+      <div class="comp-account-header">
+        <input type="text" value="${a.name}" onchange="updateCompField('${a.id}','name',this.value)" style="font-weight:700;font-size:14px;background:none;border:none;color:var(--text);border-bottom:1px solid var(--border);padding:2px 4px;width:160px">
+        <button class="comp-account-delete" onclick="deleteCompAccount('${a.id}')" title="Delete">✕</button>
+      </div>
+      <div class="fgrid f2" style="gap:8px;margin-bottom:10px">
+        <div class="fg"><label>Capital ($)</label><input type="number" value="${a.capital}" onchange="updateCompField('${a.id}','capital',+this.value)" oninput="renderComp()"></div>
+        <div class="fg"><label>Risk %</label><input type="number" value="${a.risk}" step="0.1" onchange="updateCompField('${a.id}','risk',+this.value)" oninput="renderComp()"></div>
+        <div class="fg"><label>R:R</label><input type="number" value="${a.rr}" step="0.5" onchange="updateCompField('${a.id}','rr',+this.value)" oninput="renderComp()"></div>
+        <div class="fg"><label>Win Rate %</label><input type="number" value="${a.winRate}" onchange="updateCompField('${a.id}','winRate',+this.value)" oninput="renderComp()"></div>
+        <div class="fg full"><label>Trades</label><input type="number" value="${a.trades}" onchange="updateCompField('${a.id}','trades',+this.value)" oninput="renderComp()"></div>
+      </div>
+      <div class="twrap"><table style="font-size:12px"><thead><tr><th>#</th><th>Capital</th><th>Risk</th><th>Gain</th><th>Expected</th></tr></thead>
+      <tbody>${compRows(a.capital,a.risk,a.rr,a.winRate,a.trades).map(r=>`<tr>
+        <td style="color:var(--muted)">${r.n}</td>
+        <td>$${f2(r.cap)}</td><td style="color:var(--red)">$${f2(r.risk)}</td>
+        <td style="color:var(--green)">$${f2(r.gain)}</td>
+        <td style="font-weight:700;color:${r.bal>=a.capital?'var(--green)':'var(--red)'}">$${f2(r.bal)}</td>
+      </tr>`).join('')}</tbody></table></div>
+    </div>`).join('')||'<div style="color:var(--muted);padding:20px">No accounts — click + Add Account</div>';
+  // Update comparison chart
+  updateCompChart(accounts);
+}
+function updateCompField(id,field,value){
+  const accounts=getCompAccounts();
+  const a=accounts.find(x=>x.id===id);
+  if(a){a[field]=value;saveCompAccounts(accounts);renderComp();}
+}
+function updateCompChart(accounts){
+  const ctx=document.getElementById('comp-ch');
+  if(!ctx)return;
+  const maxTrades=Math.max(...accounts.map(a=>a.trades),1);
+  const labels=Array.from({length:maxTrades+1},(_,i)=>i);
+  const datasets=accounts.map(a=>{
+    const rows=[a.capital,...compRows(a.capital,a.risk,a.rr,a.winRate,a.trades).map(r=>r.bal)];
+    return{label:a.name,data:rows,borderColor:a.color,backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:.3};
+  });
+  if(window._compChart){window._compChart.destroy();}
+  window._compChart=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'var(--text)'},position:'bottom'}},scales:{x:{ticks:{color:'var(--muted)'}},y:{ticks:{color:'var(--muted)'}}}}});
+}
+
+// ── ECONOMIC CALENDAR ─────────────────────────────────────
+function loadEcoCalendar(){
+  const wrap=document.querySelector('#eco-cal-wrap .tradingview-widget-container__widget');
+  if(!wrap||wrap.hasChildNodes())return;
+  const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+  const script=document.createElement('script');
+  script.type='text/javascript';
+  script.src='https://s3.tradingview.com/external-embedding/embed-widget-events.js';
+  script.async=true;
+  script.innerHTML=JSON.stringify({
+    colorTheme:isDark?'dark':'light',
+    isTransparent:false,
+    width:'100%',
+    height:'650',
+    locale:'en',
+    importanceFilter:'-1,0,1',
+    countryFilter:'us,eu,gb,jp,au,ca,ch,cn'
+  });
+  wrap.appendChild(script);
+}
+
+// ── BACKTESTER ──────────────────────────────────────────────
+const BT_SESSIONS=['Asia','London','New York'];
+const BT_OUTCOMES=[
+  {key:'Win',label:'✅ Win',rMult:s=>s.winR},
+  {key:'Loss',label:'❌ Loss',rMult:s=>s.lossR},
+  {key:'BEWin',label:'➖ BE (Win)',rMult:()=>0},
+  {key:'BELoss',label:'➖ BE (Loss)',rMult:()=>0},
+  {key:'Missed',label:'👁️ Missed',rMult:()=>0},
+  {key:'NoTrade',label:'⏭️ No Trade',rMult:()=>0},
+];
+const BT_COLORS={Asia:'#58a6ff',London:'#f85149','New York':'#3fb950'};
+let _bt={history:[],undone:[],sessionIdx:0};
+let _btCharts={};
+
+function btGetSettings(){
+  return{
+    winR:parseFloat(document.getElementById('bt-winR')?.value)||3,
+    lossR:parseFloat(document.getElementById('bt-lossR')?.value)||-1,
+    cap:parseFloat(document.getElementById('bt-cap')?.value)||100,
+    riskMode:document.getElementById('bt-riskMode')?.value||'constant',
+    fixedRisk:parseFloat(document.getElementById('bt-fixedRisk')?.value)||10,
+    pctRisk:parseFloat(document.getElementById('bt-pctRisk')?.value)||2,
+  };
+}
+function btToggleRisk(){
+  const isPct=document.getElementById('bt-riskMode').value==='percentage';
+  document.getElementById('bt-fixedRow').style.display=isPct?'none':'flex';
+  document.getElementById('bt-pctRow').style.display=isPct?'flex':'none';
+}
+function btOutcomeClick(key){
+  _bt.history.push({session:BT_SESSIONS[_bt.sessionIdx],outcome:key});
+  _bt.undone=[];
+  _bt.sessionIdx=(_bt.sessionIdx+1)%BT_SESSIONS.length;
+  btRecalc();
+}
+function btBack(){
+  if(!_bt.history.length)return;
+  _bt.undone.push(_bt.history.pop());
+  _bt.sessionIdx=(_bt.sessionIdx-1+BT_SESSIONS.length)%BT_SESSIONS.length;
+  btRecalc();
+}
+function btForward(){
+  if(!_bt.undone.length)return;
+  _bt.history.push(_bt.undone.pop());
+  _bt.sessionIdx=(_bt.sessionIdx+1)%BT_SESSIONS.length;
+  btRecalc();
+}
+function btRestart(){
+  _bt={history:[],undone:[],sessionIdx:0};
+  btRecalc();
+}
+function btRecalc(){
+  const S=btGetSettings();
+  // Update session display
+  const sesName=BT_SESSIONS[_bt.sessionIdx];
+  const sesCols={Asia:'var(--blue)',London:'var(--red)','New York':'var(--green)'};
+  document.getElementById('bt-session-name').textContent=sesName+' Session';
+  document.getElementById('bt-session-name').style.color=sesCols[sesName]||'var(--blue)';
+  document.getElementById('bt-outcomes').innerHTML=BT_OUTCOMES.map(o=>`<button class="btn btn-s" onclick="btOutcomeClick('${o.key}')" style="font-size:13px">${o.label}</button>`).join('');
+  document.getElementById('bt-back').disabled=!_bt.history.length;
+  document.getElementById('bt-forward').disabled=!_bt.undone.length;
+  // Recalculate
+  let balance=S.cap;
+  const equity=[S.cap];
+  const seqBySession={Asia:[S.cap],London:[S.cap],'New York':[S.cap]};
+  const seqRunning={Asia:S.cap,London:S.cap,'New York':S.cap};
+  const counts={};BT_OUTCOMES.forEach(o=>{counts[o.key]={Asia:0,London:0,'New York':0,Total:0};});
+  let wins=[],losses=[];
+  _bt.history.forEach(h=>{
+    const out=BT_OUTCOMES.find(o=>o.key===h.outcome);
+    const rMult=out.rMult(S);
+    const risk=S.riskMode==='constant'?S.fixedRisk:balance*(S.pctRisk/100);
+    const pnl=risk*rMult;
+    balance+=pnl;equity.push(balance);
+    seqRunning[h.session]+=pnl;seqBySession[h.session].push(seqRunning[h.session]);
+    counts[h.outcome][h.session]++;counts[h.outcome].Total++;
+    if(pnl>0)wins.push(pnl);else if(pnl<0)losses.push(Math.abs(pnl));
+  });
+  const totalPnl=balance-S.cap;
+  const totalTrades=wins.length+losses.length;
+  const wr=totalTrades?wins.length/totalTrades*100:0;
+  const gp=wins.reduce((s,v)=>s+v,0);
+  const gl=losses.reduce((s,v)=>s+v,0);
+  const pf=gl>0?gp/gl:gp>0?Infinity:0;
+  let pk=S.cap,mdd=0;equity.forEach(v=>{if(v>pk)pk=v;const d=pk-v;if(d>mdd)mdd=d;});
+  // Stats cards
+  document.getElementById('bt-stats-cards').innerHTML=[
+    {t:'Total Trades',v:_bt.history.length,c:'neu',s:wins.length+'W · '+losses.length+'L'},
+    {t:'Win Rate',v:f2(wr,1)+'%',c:wr>=50?'pos':'neg',s:'of decisional trades'},
+    {t:'Net P&L',v:(totalPnl>=0?'+':'')+'$'+f2(totalPnl),c:totalPnl>=0?'pos':'neg',s:'from $'+f2(S.cap)},
+    {t:'Profit Factor',v:isFinite(pf)?f2(pf,2):'∞',c:pf>=1?'pos':'neg',s:'gross ratio'},
+    {t:'Max Drawdown',v:'$'+f2(mdd),c:mdd>0?'neg':'neu',s:S.cap>0?f2(mdd/S.cap*100,1)+'%':''},
+    {t:'Final Balance',v:'$'+f2(balance),c:balance>=S.cap?'pos':'neg',s:(totalPnl>=0?'+':'')+f2(totalPnl/S.cap*100,1)+'%'},
+  ].map(c=>`<div class="card"><div class="ctitle">${c.t}</div><div class="cval ${c.c}">${c.v}</div><div class="csub">${c.s}</div></div>`).join('');
+  // Session breakdown table
+  document.getElementById('bt-table').innerHTML=BT_OUTCOMES.map(o=>`<tr>
+    <td>${o.label}</td>
+    <td style="text-align:center">${counts[o.key].Asia}</td>
+    <td style="text-align:center">${counts[o.key].London}</td>
+    <td style="text-align:center">${counts[o.key]['New York']}</td>
+    <td style="text-align:center;font-weight:700">${counts[o.key].Total}</td>
+  </tr>`).join('');
+  // Charts
+  btUpdateCharts(equity,seqBySession);
+}
+function btUpdateCharts(totalEq,bySession){
+  const labels=totalEq.map((_,i)=>i);
+  // Total equity
+  const ctx1=document.getElementById('bt-total-ch');
+  if(ctx1){
+    if(_btCharts.total)_btCharts.total.destroy();
+    _btCharts.total=new Chart(ctx1,{type:'line',data:{labels,datasets:[{data:totalEq,borderColor:'var(--blue)',backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{ticks:{color:'var(--muted)'}}}}});
+  }
+  // Per session
+  const ctx2=document.getElementById('bt-session-ch');
+  if(ctx2){
+    if(_btCharts.session)_btCharts.session.destroy();
+    const datasets=BT_SESSIONS.map(s=>({label:s,data:bySession[s],borderColor:BT_COLORS[s],backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:.3}));
+    _btCharts.session=new Chart(ctx2,{type:'line',data:{datasets:datasets.map(d=>({...d,data:bySession[d.label]||[]}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'var(--text)'},position:'bottom'}},scales:{x:{display:false},y:{ticks:{color:'var(--muted)'}}}}});
+  }
+}
+function initBacktester(){
+  _bt={history:[],undone:[],sessionIdx:0};
+  btRecalc();
+}
 
 // ── DIARY ──────────────────────────────────────────────────
 let diaryDate=today();
@@ -1494,6 +1796,7 @@ async function saveDiary(date){
 
 // ── SETTINGS ───────────────────────────────────────────────
 async function loadSettings(){
+  document.getElementById('s-email').textContent=CU?.email||'';
   const s=await getSettings();
   const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null?v:'';};
   sv('s-cap',s.capital);sv('s-rp',s.riskPct);sv('s-dl',s.dloss);sv('s-wl',s.wloss);sv('s-ml',s.mloss);sv('s-mt',s.maxtrades);sv('s-mg',s.mgoal);sv('s-wg',s.wgoal);
@@ -1511,6 +1814,16 @@ async function saveSettings(){
   const{error}=await sb.from('settings').upsert(settingsToDb(s),{onConflict:'user_id'});
   if(error){alert('Save failed: '+error.message);return;}
   _settings=s;toast('✅ Settings saved');await renderDash();
+}
+async function changePassword(){
+  const np=document.getElementById('s-np').value;
+  const np2=document.getElementById('s-np2').value;
+  const msg=document.getElementById('pw-msg');
+  if(np.length<6){msg.innerHTML='<span style="color:var(--red)">Minimum 6 characters</span>';return;}
+  if(np!==np2){msg.innerHTML='<span style="color:var(--red)">Passwords do not match</span>';return;}
+  const{error}=await sb.auth.updateUser({password:np});
+  if(error){msg.innerHTML=`<span style="color:var(--red)">${error.message}</span>`;}
+  else{msg.innerHTML='<span style="color:var(--green)">✓ Password updated successfully</span>';document.getElementById('s-np').value='';document.getElementById('s-np2').value='';}
 }
 async function resetTrades(){if(!confirm('Reset ALL trades to sample data?'))return;const{error}=await sb.from('trades').delete().eq('user_id',CU.id);if(error){alert('Error: '+error.message);return;}const rows=SEED.map(t=>tradeToDb({...t}));await sb.from('trades').insert(rows);invalidate();toast('Trades reset');await renderJournal();await renderDash();}
 async function deleteAccount(){if(!confirm('Delete your account and ALL data permanently?'))return;if(!confirm('Are you absolutely sure? This cannot be undone.'))return;await sb.from('trades').delete().eq('user_id',CU.id);await sb.from('settings').delete().eq('user_id',CU.id);await sb.from('diary').delete().eq('user_id',CU.id);await sb.auth.signOut();alert('Account deleted. Goodbye.');location.reload();}
