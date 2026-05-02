@@ -69,7 +69,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 [data-theme="light"] .cbox{box-shadow:0 1px 4px rgba(0,0,0,.06)}
 [data-theme="light"] .modal{box-shadow:0 8px 32px rgba(0,0,0,.15)}
 [data-theme="light"] .nav{box-shadow:0 1px 0 var(--border)}
-[data-theme="light"] #ticker-bar{box-shadow:none}
+
 [data-theme="light"] body{background:var(--bg)}
 .ctitle{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
 .cval{font-size:20px;font-weight:700}.csub{font-size:11px;color:var(--muted);margin-top:2px}
@@ -156,18 +156,15 @@ tr:hover td{background:var(--bg3)}
 .saving-toast.show{opacity:1}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
-/* ── LIVE TICKER BAR ── */
-#ticker-bar{background:var(--bg3);border-bottom:1px solid var(--border);padding:5px 12px;display:flex;align-items:center;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;min-height:32px;white-space:nowrap}
-#ticker-bar::-webkit-scrollbar{display:none}
-#ticker-inner{display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;flex:1;min-width:0}
-.tick-item{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-right:1px solid var(--border);flex-shrink:0;white-space:nowrap}
-.tick-sym{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
-.tick-price{font-size:12px;font-weight:700;white-space:nowrap}
-.tick-chg{font-size:10px;font-weight:600;white-space:nowrap}
-.tick-src{font-size:9px;color:var(--border);margin-left:1px;white-space:nowrap}
-.tick-meta{margin-left:auto;display:flex;align-items:center;gap:6px;padding-left:10px;flex-shrink:0;white-space:nowrap}
-.tick-time{font-size:10px;color:var(--muted);white-space:nowrap}
-.tick-dot{font-size:9px;color:var(--green);animation:pulse 2s ease-in-out infinite}
+/* ── HAMBURGER MOBILE MENU ── */
+.hamburger-btn{display:none;background:none;border:none;color:var(--text);cursor:pointer;font-size:22px;padding:0 12px;line-height:1;min-height:48px}
+.hamburger-btn:hover{color:var(--blue)}
+#mobile-menu{display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border-bottom:2px solid var(--border);z-index:200;padding:8px 0;box-shadow:0 8px 24px rgba(0,0,0,.3);max-height:80vh;overflow-y:auto}
+#mobile-menu.open{display:block}
+.mm-btn{display:flex;align-items:center;gap:10px;width:100%;padding:13px 20px;background:none;border:none;color:var(--text);cursor:pointer;font-size:14px;font-weight:500;text-align:left;border-left:3px solid transparent;transition:all .12s}
+.mm-btn:hover{background:var(--bg3);color:var(--blue)}
+.mm-btn.active{color:var(--blue);border-left-color:var(--blue);background:var(--bg3)}
+.mm-icon{font-size:16px;width:24px;text-align:center}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
 .tick-live-pnl{font-size:11px;font-weight:700}
 /* Chart tab */
@@ -214,12 +211,13 @@ tr:hover td{background:var(--bg3)}
    RESPONSIVE — MOBILE (≤ 768px)
 ══════════════════════════════════════════════════ */
 @media(max-width:768px){
-  /* Navigation */
-  .nav{padding:0}
-  .nav-brand{padding:0 12px;font-size:14px;border-right:none;border-bottom:1px solid var(--border);flex:1}
-  .nav-end{border-bottom:1px solid var(--border);padding:0 10px;gap:6px}
-  .nav-user{font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .nav-tabs{width:100%;border-top:none;flex:none;order:3;padding:0 4px}
+  /* Navigation — hamburger mode */
+  .nav{padding:0;position:relative}
+  .nav-brand{padding:0 12px;font-size:14px;border-right:none;flex:1}
+  .nav-end{padding:0 10px;gap:6px}
+  .nav-user{font-size:11px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .nav-tabs{display:none}
+  .hamburger-btn{display:flex;align-items:center}
   .tb{padding:10px 10px;font-size:12px}
   .tb-lbl{font-size:11px}
 
@@ -308,8 +306,6 @@ tr:hover td{background:var(--bg3)}
   .nav-brand{font-size:13px;padding:0 10px}
   .nav-user{display:none}
   .btn-logout{padding:4px 8px;font-size:11px}
-  .tb{padding:9px 8px;font-size:11px}
-  .tb-lbl{display:none}
 
   /* Tab padding */
   .tab{padding:10px 8px 18px}
@@ -417,17 +413,23 @@ tr:hover td{background:var(--bg3)}
     <div class="nav-user">👤 <strong id="nav-name"></strong></div>
     <button id="theme-btn" onclick="toggleTheme()" style="padding:5px 12px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:5px;cursor:pointer;font-size:14px">☀️</button>
     <button class="btn-logout" onclick="doLogout()">Logout</button>
+    <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menu">☰</button>
+  </div>
+  <!-- Mobile dropdown menu -->
+  <div id="mobile-menu">
+    <button class="mm-btn active" onclick="showTab('dash',null);closeMobileMenu()"><span class="mm-icon">🏠</span>Dashboard</button>
+    <button class="mm-btn" onclick="showTab('journal',null);closeMobileMenu()"><span class="mm-icon">📋</span>Journal</button>
+    <button class="mm-btn" onclick="showTab('calendar',null);closeMobileMenu()"><span class="mm-icon">📅</span>Calendar</button>
+    <button class="mm-btn" onclick="showTab('stats',null);closeMobileMenu()"><span class="mm-icon">📊</span>Stats</button>
+    <button class="mm-btn" onclick="showTab('chart',null);closeMobileMenu()"><span class="mm-icon">📈</span>Chart</button>
+    <button class="mm-btn" onclick="showTab('calendar-eco',null);closeMobileMenu()"><span class="mm-icon">📰</span>News</button>
+    <button class="mm-btn" onclick="showTab('calc',null);closeMobileMenu()"><span class="mm-icon">🧮</span>Calculator</button>
+    <button class="mm-btn" onclick="showTab('comp',null);closeMobileMenu()"><span class="mm-icon">💰</span>Compound</button>
+    <button class="mm-btn" onclick="showTab('diary',null);closeMobileMenu()"><span class="mm-icon">📓</span>Diary</button>
+    <button class="mm-btn" onclick="showTab('backtest',null);closeMobileMenu()"><span class="mm-icon">🔬</span>Backtest</button>
+    <button class="mm-btn" onclick="showTab('settings',null);closeMobileMenu()"><span class="mm-icon">⚙️</span>Settings</button>
   </div>
 </nav>
-
-<!-- LIVE TICKER BAR -->
-<div id="ticker-bar">
-  <div id="ticker-inner"><span style="color:var(--muted);font-size:12px">Loading prices…</span></div>
-  <div class="tick-meta">
-    <span class="tick-time" id="tick-time"></span>
-    <span class="tick-dot" id="tick-dot">●</span>
-  </div>
-</div>
 
 <!-- DASHBOARD -->
 <div id="tab-dash" class="tab active">
@@ -878,8 +880,8 @@ async function fetchPrices(symbols){
     }catch(e){console.warn('Forex fetch error',e);}
   }
 
-  renderTicker(symbols);
   refreshOpenPnl();
+  if(document.getElementById('tab-chart')?.classList.contains('active')) renderWatchlistCards();
 }
 
 function fmtPrice(p){
@@ -890,22 +892,6 @@ function fmtPrice(p){
   return p.toFixed(6);
 }
 
-function renderTicker(symbols){
-  const bar=document.getElementById('ticker-inner');
-  if(!bar) return;
-  const items=symbols.map(sym=>{
-    const s=sym.toUpperCase().replace('/','');
-    const p=PRICES[s];
-    if(!p) return `<span class="tick-item"><span class="tick-sym">${s}</span><span class="tick-price" style="color:var(--muted)">…</span></span>`;
-    const chgHtml=p.chg!=null?`<span class="tick-chg ${p.chg>=0?'pos':'neg'}">${p.chg>=0?'+':''}${p.chg.toFixed(2)}%</span>`:'';
-    const col=p.chg!=null?(p.chg>=0?'var(--green)':p.chg<0?'var(--red)':'var(--text)'):'var(--text)';
-    return `<span class="tick-item"><span class="tick-sym">${s}</span><span class="tick-price" style="color:${col}">${fmtPrice(p.price)}</span>${chgHtml}<span class="tick-src">${p.src}</span></span>`;
-  });
-  bar.innerHTML=items.join('')||'<span style="color:var(--muted);font-size:12px;padding:0 8px">No symbols tracked</span>';
-  const ts=document.getElementById('tick-time');
-  if(ts) ts.textContent='Updated '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  if(document.getElementById('tab-chart')?.classList.contains('active')) renderWatchlistCards();
-}
 
 function refreshOpenPnl(){
   const el=document.getElementById('dash-open');
@@ -1290,11 +1276,39 @@ async function initApp(){
 }
 
 // ── TABS ───────────────────────────────────────────────────
+// ── MOBILE HAMBURGER MENU ──────────────────────────────────
+function toggleMobileMenu(){
+  const menu=document.getElementById('mobile-menu');
+  const btn=document.getElementById('hamburger-btn');
+  const isOpen=menu.classList.contains('open');
+  if(isOpen){menu.classList.remove('open');btn.textContent='☰';}
+  else{menu.classList.add('open');btn.textContent='✕';}
+}
+function closeMobileMenu(){
+  const menu=document.getElementById('mobile-menu');
+  const btn=document.getElementById('hamburger-btn');
+  menu.classList.remove('open');
+  btn.textContent='☰';
+}
+// Close menu when clicking outside
+document.addEventListener('click',function(e){
+  const menu=document.getElementById('mobile-menu');
+  const btn=document.getElementById('hamburger-btn');
+  if(menu&&btn&&menu.classList.contains('open')&&!menu.contains(e.target)&&!btn.contains(e.target)){
+    closeMobileMenu();
+  }
+});
+
 async function showTab(name,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tb,.mm-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  btn.classList.add('active');
+  // Highlight the correct button in both desktop nav and mobile menu
+  if(btn) btn.classList.add('active');
+  // Also highlight matching mobile menu button
+  document.querySelectorAll('.mm-btn').forEach(b=>{
+    if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+name+"'")) b.classList.add('active');
+  });
   setLoader(true);
   if(name==='stats'){await renderStats();}
   else if(name==='calendar'){await renderCalendar();}
