@@ -22,8 +22,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 :root{--bg:#0d1117;--bg2:#161b22;--bg3:#1c2230;--bg4:#21262d;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--green:#3fb950;--gdim:#0d2818;--red:#f85149;--rdim:#2d0f0f;--blue:#58a6ff;--purple:#bc8cff;--yellow:#d29922;--orange:#f0883e;--accent:#238636}
+[data-theme="light"]{--bg:#f6f8fa;--bg2:#ffffff;--bg3:#f0f2f5;--bg4:#e8eaed;--border:#d0d7de;--text:#1f2328;--muted:#57606a;--green:#1a7f37;--gdim:#d1f0da;--red:#cf222e;--rdim:#ffd7d5;--blue:#0969da;--purple:#8250df;--yellow:#7d4e00;--orange:#bc4c00;--accent:#1a7f37}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;min-height:100vh}
 /* LOADING */
@@ -61,8 +63,14 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .btn-logout{padding:5px 12px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:5px;cursor:pointer;font-size:12px}
 .btn-logout:hover{color:var(--red);border-color:var(--red)}
 .tab{display:none;padding:18px;max-width:1600px;margin:0 auto}.tab.active{display:block}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;transition:border-color .15s}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;transition:border-color .15s;box-shadow:0 1px 4px rgba(0,0,0,.25)}
 .card:hover{border-color:#444}
+[data-theme="light"] .card{box-shadow:0 1px 4px rgba(0,0,0,.07)}
+[data-theme="light"] .cbox{box-shadow:0 1px 4px rgba(0,0,0,.06)}
+[data-theme="light"] .modal{box-shadow:0 8px 32px rgba(0,0,0,.15)}
+[data-theme="light"] .nav{box-shadow:0 1px 0 var(--border)}
+[data-theme="light"] #ticker-bar{box-shadow:none}
+[data-theme="light"] body{background:var(--bg)}
 .ctitle{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
 .cval{font-size:20px;font-weight:700}.csub{font-size:11px;color:var(--muted);margin-top:2px}
 .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;margin-bottom:16px}
@@ -162,6 +170,20 @@ tr:hover td{background:var(--bg3)}
 .tick-dot{font-size:9px;color:var(--green);animation:pulse 2s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
 .tick-live-pnl{font-size:11px;font-weight:700}
+/* Chart tab */
+.tf-group{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.tf-btn{background:none;border:none;color:var(--muted);padding:5px 11px;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s;border-right:1px solid var(--border)}
+.tf-btn:last-child{border-right:none}
+.tf-btn:hover{background:var(--bg3);color:var(--text)}
+.tf-btn.active{background:var(--accent);color:#fff}
+/* Watchlist cards */
+.wl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.wl-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:border-color .15s}
+.wl-card:hover{border-color:var(--blue)}
+.wl-card.active{border-color:var(--accent)}
+.wl-sym{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:2px}
+.wl-price{font-size:15px;font-weight:700}
+.wl-chg{font-size:11px;font-weight:600;margin-top:1px}
 .live-pnl-row{display:flex;justify-content:space-between;align-items:center;margin-top:4px;font-size:12px}
 .live-price-tag{color:var(--muted)}
 .live-price-tag strong{color:var(--text)}
@@ -365,6 +387,7 @@ tr:hover td{background:var(--bg3)}
     <button class="tb" onclick="showTab('journal',this)">📋 <span class="tb-lbl">Journal</span></button>
     <button class="tb" onclick="showTab('calendar',this)">📅 <span class="tb-lbl">Calendar</span></button>
     <button class="tb" onclick="showTab('stats',this)">📊 <span class="tb-lbl">Stats</span></button>
+    <button class="tb" onclick="showTab('chart',this)">📈 <span class="tb-lbl">Chart</span></button>
     <button class="tb" onclick="showTab('calc',this)">🧮 <span class="tb-lbl">Calc</span></button>
     <button class="tb" onclick="showTab('comp',this)">📈 <span class="tb-lbl">Compound</span></button>
     <button class="tb" onclick="showTab('diary',this)">📓 <span class="tb-lbl">Diary</span></button>
@@ -372,6 +395,7 @@ tr:hover td{background:var(--bg3)}
   </div>
   <div class="nav-end">
     <div class="nav-user">👤 <strong id="nav-name"></strong></div>
+    <button id="theme-btn" onclick="toggleTheme()" style="padding:5px 12px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:5px;cursor:pointer;font-size:14px">☀️</button>
     <button class="btn-logout" onclick="doLogout()">Logout</button>
   </div>
 </nav>
@@ -458,6 +482,28 @@ tr:hover td{background:var(--bg3)}
       <div class="cbox"><h3>Rules: Followed vs Broken</h3><div id="rules-stats"></div></div>
     </div>
   </div>
+</div>
+
+<!-- CHART -->
+<div id="tab-chart" class="tab">
+  <div class="section-title">Chart</div>
+  <div class="section-sub">Live candlesticks with your trade entries &amp; exits</div>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+    <input type="text" id="ch-sym" placeholder="e.g. ETHUSDT" style="width:148px;text-transform:uppercase" onkeydown="if(event.key==='Enter')loadChart()">
+    <div class="tf-group">
+      <button class="tf-btn active" data-tf="1h" onclick="setTf('1h',this)">1H</button>
+      <button class="tf-btn" data-tf="4h" onclick="setTf('4h',this)">4H</button>
+      <button class="tf-btn" data-tf="1d" onclick="setTf('1d',this)">1D</button>
+      <button class="tf-btn" data-tf="1w" onclick="setTf('1w',this)">1W</button>
+    </div>
+    <button class="btn btn-p" onclick="loadChart()">Load Chart</button>
+    <span id="ch-info" style="font-size:12px;color:var(--muted)"></span>
+  </div>
+  <div id="ch-watchlist" class="wl-grid" style="margin-bottom:16px"></div>
+  <div class="cbox" style="padding:0;overflow:hidden;position:relative">
+    <div id="chart-wrap" style="height:460px;width:100%"></div>
+  </div>
+  <div id="ch-trade-list" style="margin-top:14px"></div>
 </div>
 
 <!-- CALCULATOR -->
@@ -569,6 +615,16 @@ tr:hover td{background:var(--bg3)}
       <div id="rules-list"></div>
       <button class="btn btn-s btn-sm" style="margin-top:8px" onclick="addRule()">+ Add Rule</button>
     </div>
+    <div class="settings-section"><div class="settings-title">🕐 Sessions</div>
+      <div style="color:var(--muted);font-size:12px;margin-bottom:8px">Custom trading sessions shown in the Add Trade dropdown</div>
+      <div id="sessions-list"></div>
+      <button class="btn btn-s btn-sm" style="margin-top:8px" onclick="addSession()">+ Add Session</button>
+    </div>
+    <div class="settings-section"><div class="settings-title">🎯 Strategies</div>
+      <div style="color:var(--muted);font-size:12px;margin-bottom:8px">Custom strategies shown in the Add Trade dropdown</div>
+      <div id="strategies-list"></div>
+      <button class="btn btn-s btn-sm" style="margin-top:8px" onclick="addStrategy()">+ Add Strategy</button>
+    </div>
     <div class="settings-section"><div class="settings-title">📡 Watchlist</div>
       <div style="color:var(--muted);font-size:12px;margin-bottom:10px">Symbols always shown in the live ticker — add any pair you follow (e.g. BTCUSDT, EURUSD, XAUUSD)</div>
       <div id="watchlist-list"></div>
@@ -603,7 +659,7 @@ tr:hover td{background:var(--bg3)}
         <div class="fg"><label>Grade</label><select id="f-grade"><option>A+</option><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
         <div class="fg"><label>Emotion</label><select id="f-emo"><option>Disciplined</option><option>Confident</option><option>FOMO</option><option>Revenge</option><option>Fear</option><option>Overconfident</option><option>Bored</option></select></div>
         <div class="fg"><label>Rules Followed</label><select id="f-rules"><option>Yes</option><option>Partial</option><option>No</option></select></div>
-        <div class="fg"><label>Session</label><select id="f-ses"><option>Asian</option><option>Asian/London Overlap</option><option>London</option><option>London/NY Overlap</option><option>New York</option></select></div>
+        <div class="fg"><label>Session</label><select id="f-ses"></select></div>
       </div>
       <div class="divider"></div>
       <div class="fgrid f4" style="gap:10px">
@@ -625,7 +681,7 @@ tr:hover td{background:var(--bg3)}
         <div class="fg"><label>R:R (auto)</label><input type="number" id="f-rr" step="any" readonly style="opacity:.6"></div>
       </div>
       <div class="fgrid f2" style="gap:10px;margin-top:10px">
-        <div class="fg"><label>Strategy</label><select id="f-strat"><option value="">— None —</option><option>ICT/SMC (FVG, OB)</option><option>Breakout</option><option>Trend Follow</option><option>Support/Resistance</option><option>Scalp</option><option>News Trade</option></select></div>
+        <div class="fg"><label>Strategy</label><select id="f-strat"></select></div>
         <div class="fg"><label>Multiplier</label><input type="number" id="f-mult" value="1" step="any"></div>
       </div>
       <div class="fg" style="margin-top:10px"><label>Comments / Notes</label><textarea id="f-notes" rows="2" style="width:100%;resize:vertical"></textarea></div>
@@ -646,6 +702,23 @@ tr:hover td{background:var(--bg3)}
 const SURL='https://fhukthyogmimszbnqvle.supabase.co';
 const SKEY='sb_publishable_T_FHK6ZU71p0PDGRu57n9A_wsBmzF5R';
 const sb=window.supabase.createClient(SURL,SKEY);
+
+// ── THEME ──────────────────────────────────────────────────
+function toggleTheme(){
+  const isLight=document.documentElement.getAttribute('data-theme')==='light';
+  if(isLight) document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme','light');
+  localStorage.setItem('tv_theme',document.documentElement.getAttribute('data-theme')||'dark');
+  document.getElementById('theme-btn').textContent=document.documentElement.getAttribute('data-theme')==='light'?'🌙':'☀️';
+  // Rebuild chart with new theme colors if open
+  if(_chart&&document.getElementById('ch-sym')?.value) loadChart();
+}
+function initTheme(){
+  const saved=localStorage.getItem('tv_theme');
+  if(saved==='light'){document.documentElement.setAttribute('data-theme','light');}
+  const btn=document.getElementById('theme-btn');
+  if(btn) btn.textContent=saved==='light'?'🌙':'☀️';
+}
 
 const DEFAULT_RULES=["Trade only A+ and A setups","Never risk more than 1% per trade","No trading during major news events","Stop trading after 2 consecutive losses","Always define stop loss before entry"];
 const SEED=[
@@ -751,6 +824,7 @@ function renderTicker(symbols){
   bar.innerHTML=items.join('')||'<span style="color:var(--muted);font-size:12px;padding:0 8px">No symbols tracked</span>';
   const ts=document.getElementById('tick-time');
   if(ts) ts.textContent='Updated '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  if(document.getElementById('tab-chart')?.classList.contains('active')) renderWatchlistCards();
 }
 
 function refreshOpenPnl(){
@@ -797,6 +871,136 @@ function startPriceFeed(){
 
 function stopPriceFeed(){
   if(_priceTimer){clearInterval(_priceTimer);_priceTimer=null;}
+}
+
+// ── CHART ─────────────────────────────────────────────────
+let _chart=null, _candleSeries=null, _currentTf='1h';
+const TF_MAP={'1h':'1h','4h':'4h','1d':'1d','1w':'1w'};
+const TF_BINANCE={'1h':'1h','4h':'4h','1d':'1d','1w':'1w'};
+const TF_LIMIT={'1h':200,'4h':200,'1d':365,'1w':104};
+
+function setTf(tf,btn){
+  _currentTf=tf;
+  document.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function buildChart(){
+  const wrap=document.getElementById('chart-wrap');
+  if(!wrap) return;
+  if(_chart){_chart.remove();_chart=null;_candleSeries=null;}
+  const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+  const bg=isDark?'#0d1117':'#ffffff';
+  const textC=isDark?'#8b949e':'#57606a';
+  const gridC=isDark?'#1c2230':'#f0f2f5';
+  _chart=LightweightCharts.createChart(wrap,{
+    width:wrap.clientWidth, height:460,
+    layout:{background:{color:bg},textColor:textC},
+    grid:{vertLines:{color:gridC},horzLines:{color:gridC}},
+    rightPriceScale:{borderColor:isDark?'#30363d':'#d0d7de'},
+    timeScale:{borderColor:isDark?'#30363d':'#d0d7de',timeVisible:true},
+    crosshair:{mode:LightweightCharts.CrosshairMode.Normal},
+  });
+  _candleSeries=_chart.addCandlestickSeries({
+    upColor:'#3fb950',downColor:'#f85149',
+    borderUpColor:'#3fb950',borderDownColor:'#f85149',
+    wickUpColor:'#3fb950',wickDownColor:'#f85149',
+  });
+  // Resize observer
+  new ResizeObserver(()=>{if(_chart)_chart.applyOptions({width:wrap.clientWidth});}).observe(wrap);
+}
+
+async function loadChart(){
+  const rawSym=(document.getElementById('ch-sym').value||'').trim().toUpperCase().replace('/','');
+  if(!rawSym){document.getElementById('ch-info').textContent='Enter a symbol first';return;}
+  document.getElementById('ch-info').textContent='Loading…';
+  buildChart();
+  const interval=TF_BINANCE[_currentTf]||'1d';
+  const limit=TF_LIMIT[_currentTf]||200;
+  try{
+    const res=await fetch(`https://api.binance.com/api/v3/klines?symbol=${rawSym}&interval=${interval}&limit=${limit}`);
+    const raw=await res.json();
+    if(!Array.isArray(raw)||raw.code){
+      document.getElementById('ch-info').textContent='Symbol not found on Binance. Try ETHUSDT, BTCUSDT, etc.';
+      return;
+    }
+    const candles=raw.map(k=>({
+      time:Math.floor(k[0]/1000),
+      open:parseFloat(k[1]),high:parseFloat(k[2]),
+      low:parseFloat(k[3]),close:parseFloat(k[4])
+    }));
+    _candleSeries.setData(candles);
+    if(_trades){
+      const symTrades=_trades.filter(t=>(t.symbol||'').toUpperCase().replace('/','')=== rawSym && t.entryDate);
+      const markers=[];
+      symTrades.forEach(t=>{
+        const entryTs=Math.floor(new Date(t.entryDate+'T'+(t.entryTime||'00:00')+':00Z').getTime()/1000);
+        markers.push({
+          time:entryTs,
+          position:t.direction==='Long'?'belowBar':'aboveBar',
+          color:t.direction==='Long'?'#3fb950':'#f85149',
+          shape:t.direction==='Long'?'arrowUp':'arrowDown',
+          text:(t.grade||'')+(t.netPnl!=null?(t.netPnl>=0?' +$':' -$')+Math.abs(t.netPnl).toFixed(2):''),
+          size:1,
+        });
+        if(t.exitDate&&t.status==='Finished'){
+          const exitTs=Math.floor(new Date(t.exitDate+'T'+(t.exitTime||'00:00')+':00Z').getTime()/1000);
+          markers.push({time:exitTs,position:t.direction==='Long'?'aboveBar':'belowBar',color:'#8b949e',shape:'circle',text:'Exit',size:0.8});
+        }
+      });
+      markers.sort((a,b)=>a.time-b.time);
+      if(markers.length) _candleSeries.setMarkers(markers);
+      renderChartTradeList(symTrades,rawSym);
+    }
+    document.getElementById('ch-info').textContent=rawSym+' · '+interval.toUpperCase()+' · '+candles.length+' candles';
+    _chart.timeScale().fitContent();
+  }catch(e){
+    document.getElementById('ch-info').textContent='Error loading chart: '+e.message;
+  }
+}
+
+function renderChartTradeList(trades,sym){
+  const el=document.getElementById('ch-trade-list');
+  if(!el) return;
+  if(!trades.length){el.innerHTML='';return;}
+  el.innerHTML=`<div class="cbox"><h3>Trades on ${sym} (${trades.length})</h3>
+    <div class="twrap"><table><thead><tr><th>ID</th><th>Dir</th><th>Grade</th><th>Entry</th><th>Exit</th><th>Net P&L</th><th>R:R</th></tr></thead>
+    <tbody>${trades.map(t=>`<tr>
+      <td style="color:var(--muted);font-size:11px">${t.id}</td>
+      <td><span class="badge ${t.direction==='Long'?'b-long':'b-short'}">${t.direction}</span></td>
+      <td><span class="badge ${gc(t.grade)}">${t.grade||'—'}</span></td>
+      <td style="font-size:12px">${t.entryDate||'—'}</td>
+      <td style="font-size:12px">${t.exitDate||'—'}</td>
+      <td>${pnlH(t.netPnl)}</td>
+      <td style="font-size:12px">${t.rr!=null?f2(t.rr,2)+'R':'—'}</td>
+    </tr>`).join('')}</tbody></table></div></div>`;
+}
+
+function renderWatchlistCards(){
+  const el=document.getElementById('ch-watchlist');
+  if(!el) return;
+  const syms=[...new Set([
+    ...(_trades||[]).map(t=>t.symbol).filter(Boolean),
+    ...JSON.parse(localStorage.getItem('tv_watchlist')||'[]')
+  ])];
+  if(!syms.length){el.innerHTML='<div style="color:var(--muted);font-size:13px">No symbols yet — add trades or use Settings → Watchlist</div>';return;}
+  el.innerHTML=syms.map(s=>{
+    const key=s.toUpperCase().replace('/','');
+    const p=PRICES[key];
+    const priceHtml=p?`<div class="wl-price ${p.chg!=null?(p.chg>=0?'pos':'neg'):''}">${fmtPrice(p.price)}</div>
+      ${p.chg!=null?`<div class="wl-chg ${p.chg>=0?'pos':'neg'}">${p.chg>=0?'+':''}${p.chg.toFixed(2)}%</div>`:''}`
+      :`<div class="wl-price" style="color:var(--muted)">—</div>`;
+    return `<div class="wl-card" onclick="pickSymbolChart('${s}')" title="Click to load chart">
+      <div class="wl-sym">${s}</div>${priceHtml}
+    </div>`;
+  }).join('');
+}
+
+function pickSymbolChart(sym){
+  document.getElementById('ch-sym').value=sym.toUpperCase();
+  loadChart();
+  document.querySelectorAll('.wl-card').forEach(c=>c.classList.remove('active'));
+  event.currentTarget.classList.add('active');
 }
 
 // Fill live price into calculator
@@ -852,6 +1056,54 @@ function removeWatchlist(i){
   localStorage.setItem('tv_watchlist',JSON.stringify(list));
   loadWatchlistUI();
   startPriceFeed();
+}
+
+// ── CUSTOM SESSIONS & STRATEGIES ───────────────────────────
+const DEFAULT_SESSIONS=['Asian','Asian/London Overlap','London','London/NY Overlap','New York'];
+const DEFAULT_STRATEGIES=['ICT/SMC (FVG, OB)','Breakout','Trend Follow','Support/Resistance','Scalp','News Trade'];
+
+function getSessions(){return JSON.parse(localStorage.getItem('tv_sessions')||'null')||[...DEFAULT_SESSIONS];}
+function getStrategies(){return JSON.parse(localStorage.getItem('tv_strategies')||'null')||[...DEFAULT_STRATEGIES];}
+
+function renderSessionsUI(){
+  const list=getSessions();
+  const el=document.getElementById('sessions-list');
+  if(!el)return;
+  el.innerHTML=list.map((s,i)=>`<div class="rule-item"><span style="flex:1;font-size:13px">${s}</span><button class="btn btn-d btn-sm" onclick="removeSession(${i})">✕</button></div>`).join('')||'<div style="color:var(--muted);font-size:12px">No sessions</div>';
+}
+function renderStrategiesUI(){
+  const list=getStrategies();
+  const el=document.getElementById('strategies-list');
+  if(!el)return;
+  el.innerHTML=list.map((s,i)=>`<div class="rule-item"><span style="flex:1;font-size:13px">${s}</span><button class="btn btn-d btn-sm" onclick="removeStrategy(${i})">✕</button></div>`).join('')||'<div style="color:var(--muted);font-size:12px">No strategies</div>';
+}
+function addSession(){
+  const v=prompt('New session name:');if(!v)return;
+  const list=getSessions();list.push(v.trim());
+  localStorage.setItem('tv_sessions',JSON.stringify(list));
+  renderSessionsUI();
+}
+function removeSession(i){
+  const list=getSessions();list.splice(i,1);
+  localStorage.setItem('tv_sessions',JSON.stringify(list));
+  renderSessionsUI();
+}
+function addStrategy(){
+  const v=prompt('New strategy name:');if(!v)return;
+  const list=getStrategies();list.push(v.trim());
+  localStorage.setItem('tv_strategies',JSON.stringify(list));
+  renderStrategiesUI();
+}
+function removeStrategy(i){
+  const list=getStrategies();list.splice(i,1);
+  localStorage.setItem('tv_strategies',JSON.stringify(list));
+  renderStrategiesUI();
+}
+function populateModalDropdowns(){
+  const sesSel=document.getElementById('f-ses');
+  const stratSel=document.getElementById('f-strat');
+  if(sesSel){const cur=sesSel.value;sesSel.innerHTML=getSessions().map(s=>`<option>${s}</option>`).join('');sesSel.value=cur;}
+  if(stratSel){const cur=stratSel.value;stratSel.innerHTML='<option value="">— None —</option>'+getStrategies().map(s=>`<option>${s}</option>`).join('');stratSel.value=cur;}
 }
 
 // ── UTILS ──────────────────────────────────────────────────
@@ -969,6 +1221,7 @@ async function showTab(name,btn){
   else if(name==='diary'){await renderDiary();}
   else if(name==='settings'){await loadSettings();}
   else if(name==='calc'){calcIt();qrCalc();}
+  else if(name==='chart'){renderWatchlistCards();if(document.getElementById('ch-sym').value)loadChart();}
   setLoader(false);
 }
 
@@ -1073,8 +1326,8 @@ function exportCSV(){
 
 // ── MODAL ──────────────────────────────────────────────────
 let editingId=null,ssData=null;
-function openModal(){editingId=null;ssData=null;document.getElementById('modal-title').textContent='Add Trade';setForm({status:'Open',assetType:'Crypto',symbol:'',direction:'Long',grade:'A',emotion:'Disciplined',rulesFollowed:'Yes',session:'London/NY Overlap',entryDate:today(),entryTime:'',exitDate:'',exitTime:'',quantity:'',entryPrice:'',stopPrice:'',exitPrice:'',commission:'',netPnl:'',risk:'',rr:'',strategy:'',multiplier:1,comments:''});document.getElementById('ss-prev').innerHTML='';document.getElementById('auto-hint').textContent='';document.getElementById('trade-modal').classList.add('open');}
-function editTrade(id){editingId=id;const t=(_trades||[]).find(x=>x.id===id);if(!t)return;document.getElementById('modal-title').textContent='Edit — '+id;setForm(t);document.getElementById('ss-prev').innerHTML=t.screenshot?`<img src="${t.screenshot}" class="thumb-img" onclick="window.open(this.src,'_blank')">`:'';document.getElementById('trade-modal').classList.add('open');}
+function openModal(){populateModalDropdowns();editingId=null;ssData=null;document.getElementById('modal-title').textContent='Add Trade';setForm({status:'Open',assetType:'Crypto',symbol:'',direction:'Long',grade:'A',emotion:'Disciplined',rulesFollowed:'Yes',session:'London/NY Overlap',entryDate:today(),entryTime:'',exitDate:'',exitTime:'',quantity:'',entryPrice:'',stopPrice:'',exitPrice:'',commission:'',netPnl:'',risk:'',rr:'',strategy:'',multiplier:1,comments:''});document.getElementById('ss-prev').innerHTML='';document.getElementById('auto-hint').textContent='';document.getElementById('trade-modal').classList.add('open');}
+function editTrade(id){populateModalDropdowns();editingId=id;const t=(_trades||[]).find(x=>x.id===id);if(!t)return;document.getElementById('modal-title').textContent='Edit — '+id;setForm(t);document.getElementById('ss-prev').innerHTML=t.screenshot?`<img src="${t.screenshot}" class="thumb-img" onclick="window.open(this.src,'_blank')">`:'';document.getElementById('trade-modal').classList.add('open');}
 function setForm(t){const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null?v:'';};sv('f-status',t.status);sv('f-asset',t.assetType);sv('f-sym',t.symbol);sv('f-dir',t.direction);sv('f-grade',t.grade);sv('f-emo',t.emotion);sv('f-rules',t.rulesFollowed);sv('f-ses',t.session);sv('f-ed',t.entryDate);sv('f-et',t.entryTime);sv('f-xd',t.exitDate);sv('f-xt',t.exitTime);sv('f-qty',t.quantity);sv('f-ep',t.entryPrice);sv('f-sp',t.stopPrice);sv('f-xp',t.exitPrice);sv('f-comm',t.commission);sv('f-pnl',t.netPnl);sv('f-risk',t.risk);sv('f-rr',t.rr);sv('f-strat',t.strategy);sv('f-mult',t.multiplier);sv('f-notes',t.comments);}
 function closeModal(){document.getElementById('trade-modal').classList.remove('open');ssData=null;}
 function updatePrefix(){}
@@ -1246,6 +1499,8 @@ async function loadSettings(){
   sv('s-cap',s.capital);sv('s-rp',s.riskPct);sv('s-dl',s.dloss);sv('s-wl',s.wloss);sv('s-ml',s.mloss);sv('s-mt',s.maxtrades);sv('s-mg',s.mgoal);sv('s-wg',s.wgoal);
   renderRules(s.rules||[...DEFAULT_RULES]);
   loadWatchlistUI();
+  renderSessionsUI();
+  renderStrategiesUI();
 }
 function renderRules(rules){document.getElementById('rules-list').innerHTML=rules.map((r,i)=>`<div class="rule-item"><span style="color:var(--muted);min-width:20px;font-size:12px">${i+1}.</span><input type="text" id="rule-${i}" value="${r}" style="flex:1"><button class="btn btn-d btn-sm" onclick="removeRule(${i})">✕</button></div>`).join('');}
 async function addRule(){const s=await getSettings();const rules=s.rules||[...DEFAULT_RULES];rules.push('New trading rule');renderRules(rules);}
@@ -1262,6 +1517,7 @@ async function deleteAccount(){if(!confirm('Delete your account and ALL data per
 
 // ── INIT ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',async()=>{
+  initTheme();
   const{data:{session}}=await sb.auth.getSession();
   if(session?.user){CU=session.user;await initApp();}
   else{setLoader(false);document.getElementById('auth-screen').classList.add('show');}
