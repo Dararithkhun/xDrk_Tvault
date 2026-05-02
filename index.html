@@ -148,6 +148,27 @@ tr:hover td{background:var(--bg3)}
 .saving-toast.show{opacity:1}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
+/* ── LIVE TICKER BAR ── */
+#ticker-bar{background:var(--bg3);border-bottom:1px solid var(--border);padding:5px 12px;display:flex;align-items:center;gap:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;min-height:32px}
+#ticker-bar::-webkit-scrollbar{display:none}
+#ticker-inner{display:flex;align-items:center;gap:0;flex-wrap:nowrap;flex:1;min-width:0}
+.tick-item{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-right:1px solid var(--border);flex-shrink:0}
+.tick-sym{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.3px}
+.tick-price{font-size:12px;font-weight:700}
+.tick-chg{font-size:10px;font-weight:600}
+.tick-src{font-size:9px;color:var(--border);margin-left:1px}
+.tick-meta{margin-left:auto;display:flex;align-items:center;gap:6px;padding-left:10px;flex-shrink:0}
+.tick-time{font-size:10px;color:var(--muted);white-space:nowrap}
+.tick-dot{font-size:9px;color:var(--green);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+.tick-live-pnl{font-size:11px;font-weight:700}
+.live-pnl-row{display:flex;justify-content:space-between;align-items:center;margin-top:4px;font-size:12px}
+.live-price-tag{color:var(--muted)}
+.live-price-tag strong{color:var(--text)}
+/* calc live btn */
+.live-btn{padding:1px 6px!important;font-size:10px!important;margin-left:4px;vertical-align:middle;cursor:pointer;background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--yellow)}
+.live-btn:hover{background:var(--bg3);border-color:var(--yellow)}
+
 /* ── Layout class helpers (replace inline styles) ── */
 .calc-wrap{display:grid;grid-template-columns:360px 1fr;gap:18px}
 .comp-wrap{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:16px}
@@ -355,6 +376,15 @@ tr:hover td{background:var(--bg3)}
   </div>
 </nav>
 
+<!-- LIVE TICKER BAR -->
+<div id="ticker-bar">
+  <div id="ticker-inner"><span style="color:var(--muted);font-size:12px">Loading prices…</span></div>
+  <div class="tick-meta">
+    <span class="tick-time" id="tick-time"></span>
+    <span class="tick-dot" id="tick-dot">●</span>
+  </div>
+</div>
+
 <!-- DASHBOARD -->
 <div id="tab-dash" class="tab active">
   <div id="dash-alerts"></div>
@@ -443,7 +473,7 @@ tr:hover td{background:var(--bg3)}
         <div class="fg"><label>Risk %</label><input type="number" id="c-rp" value="1" step="0.1" oninput="calcIt()"></div>
         <div class="fg"><label>Risk $ (override)</label><input type="number" id="c-ra" placeholder="Auto" oninput="calcIt()"></div>
         <div class="fg"><label>R:R Ratio</label><input type="number" id="c-rr" value="2" step="0.5" oninput="calcIt()"></div>
-        <div class="fg"><label>Entry Price</label><input type="number" id="c-ep" step="any" oninput="calcIt()"></div>
+        <div class="fg"><label>Entry Price <button class="live-btn" onclick="fillLivePrice('c-ep')">⚡ Live</button></label><input type="number" id="c-ep" step="any" oninput="calcIt()"></div>
         <div class="fg"><label>Stop Price</label><input type="number" id="c-sp" step="any" oninput="calcIt()"></div>
       </div>
       <div id="c-result" style="margin-top:14px;background:var(--bg3);border-radius:7px;padding:14px"></div>
@@ -539,6 +569,14 @@ tr:hover td{background:var(--bg3)}
       <div id="rules-list"></div>
       <button class="btn btn-s btn-sm" style="margin-top:8px" onclick="addRule()">+ Add Rule</button>
     </div>
+    <div class="settings-section"><div class="settings-title">📡 Watchlist</div>
+      <div style="color:var(--muted);font-size:12px;margin-bottom:10px">Symbols always shown in the live ticker — add any pair you follow (e.g. BTCUSDT, EURUSD, XAUUSD)</div>
+      <div id="watchlist-list"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input type="text" id="wl-input" placeholder="e.g. BTCUSDT" style="flex:1;text-transform:uppercase" onkeydown="if(event.key==='Enter')addWatchlist()">
+        <button class="btn btn-s btn-sm" onclick="addWatchlist()">+ Add</button>
+      </div>
+    </div>
     <div class="settings-section"><div class="settings-title" style="color:var(--red)">⚠️ Danger Zone</div>
       <div style="display:flex;gap:10px">
         <button class="btn btn-d" onclick="resetTrades()">Reset All Trades</button>
@@ -625,6 +663,197 @@ const SEED=[
 // ── STATE ──────────────────────────────────────────────────
 let CU=null, _trades=null, _settings=null, _diary=null;
 
+// ── LIVE PRICE ENGINE ──────────────────────────────────────
+const PRICES={};
+let _priceTimer=null;
+const FOREX_CCYS=['EUR','GBP','JPY','CHF','AUD','CAD','NZD','SGD','HKD','SEK','NOK','DKK','MXN','ZAR','TRY','INR','CNH','CZK','PLN','HUF'];
+
+function classifySym(sym){
+  const s=(sym||'').toUpperCase().replace('/','');
+  if(s==='XAUUSD'||s==='GOLD'||s==='XAU') return 'gold';
+  if(s==='XAGUSD'||s==='SILVER'||s==='XAG') return 'silver';
+  if(s==='XTIUSD'||s==='USOIL'||s==='OIL'||s==='WTIUSD') return 'oil';
+  if(s.endsWith('USDT')||s.endsWith('USDC')||s.endsWith('BUSD')||
+     s.endsWith('BTC')||s.endsWith('ETH')||s.endsWith('BNB')) return 'crypto';
+  for(const c of FOREX_CCYS){if(s.startsWith(c)||s.endsWith(c)) return 'forex';}
+  return 'crypto';
+}
+
+async function fetchPrices(symbols){
+  if(!symbols||!symbols.length) return;
+  const groups={crypto:[],metals:false,forex:false};
+  symbols.forEach(s=>{
+    const t=classifySym(s);
+    if(t==='crypto') groups.crypto.push(s.toUpperCase().replace('/',''));
+    else if(t==='gold'||t==='silver'||t==='oil') groups.metals=true;
+    else if(t==='forex') groups.forex=true;
+  });
+
+  // ── Crypto: Binance ──────────────────────────
+  if(groups.crypto.length){
+    try{
+      const syms=JSON.stringify(groups.crypto);
+      const res=await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=${encodeURIComponent(syms)}`);
+      const data=await res.json();
+      if(Array.isArray(data)) data.forEach(t=>{
+        PRICES[t.symbol]={price:parseFloat(t.lastPrice),chg:parseFloat(t.priceChangePercent),src:'Binance'};
+      });
+    }catch(e){console.warn('Binance fetch error',e);}
+  }
+
+  // ── Metals & Oil: metals.live ─────────────────
+  if(groups.metals){
+    try{
+      const res=await fetch('https://api.metals.live/v1/spot');
+      const raw=await res.json();
+      const d=Array.isArray(raw)?raw[0]:raw;
+      if(d.gold)  PRICES['XAUUSD']={price:d.gold,  chg:null,src:'metals.live'};
+      if(d.silver)PRICES['XAGUSD']={price:d.silver, chg:null,src:'metals.live'};
+      if(d.oil||d.crude||d.wti)PRICES['USOIL']={price:d.oil||d.crude||d.wti,chg:null,src:'metals.live'};
+    }catch(e){console.warn('Metals fetch error',e);}
+  }
+
+  // ── Forex: Frankfurter (ECB daily) ────────────
+  if(groups.forex){
+    try{
+      const res=await fetch('https://api.frankfurter.app/latest?from=USD');
+      const data=await res.json();
+      Object.entries(data.rates).forEach(([cur,rate])=>{
+        PRICES[`USD${cur}`]={price:rate,       chg:null,src:'ECB'};
+        PRICES[`${cur}USD`]={price:1/rate,     chg:null,src:'ECB'};
+      });
+    }catch(e){console.warn('Forex fetch error',e);}
+  }
+
+  renderTicker(symbols);
+  refreshOpenPnl();
+}
+
+function fmtPrice(p){
+  if(p==null)return '—';
+  if(p>=10000) return p.toFixed(2);
+  if(p>=100)   return p.toFixed(2);
+  if(p>=1)     return p.toFixed(4);
+  return p.toFixed(6);
+}
+
+function renderTicker(symbols){
+  const bar=document.getElementById('ticker-inner');
+  if(!bar) return;
+  const items=symbols.map(sym=>{
+    const s=sym.toUpperCase().replace('/','');
+    const p=PRICES[s];
+    if(!p) return `<span class="tick-item"><span class="tick-sym">${s}</span><span class="tick-price" style="color:var(--muted)">…</span></span>`;
+    const chgHtml=p.chg!=null?`<span class="tick-chg ${p.chg>=0?'pos':'neg'}">${p.chg>=0?'+':''}${p.chg.toFixed(2)}%</span>`:'';
+    const col=p.chg!=null?(p.chg>=0?'var(--green)':p.chg<0?'var(--red)':'var(--text)'):'var(--text)';
+    return `<span class="tick-item"><span class="tick-sym">${s}</span><span class="tick-price" style="color:${col}">${fmtPrice(p.price)}</span>${chgHtml}<span class="tick-src">${p.src}</span></span>`;
+  });
+  bar.innerHTML=items.join('')||'<span style="color:var(--muted);font-size:12px;padding:0 8px">No symbols tracked</span>';
+  const ts=document.getElementById('tick-time');
+  if(ts) ts.textContent='Updated '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+function refreshOpenPnl(){
+  const el=document.getElementById('dash-open');
+  if(!el||!_trades) return;
+  const open=_trades.filter(t=>t.status==='Open');
+  if(!open.length) return;
+  el.innerHTML=open.map(t=>{
+    const sym=(t.symbol||'').toUpperCase().replace('/','');
+    const lp=PRICES[sym]?.price;
+    let livePnlHtml='';
+    if(lp&&t.quantity&&t.entryPrice){
+      const mult=t.multiplier||1;
+      const raw=(lp-t.entryPrice)*t.quantity*mult*(t.direction==='Short'?-1:1);
+      const livePnl=raw-(t.commission||0);
+      livePnlHtml=`<span class="tick-live-pnl ${livePnl>=0?'pos':'neg'}">${livePnl>=0?'+':''}$${f2(livePnl)} unrealised</span>`;
+    }
+    return `<div style="padding:7px 10px;background:var(--bg3);border-radius:5px;margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><strong>${t.symbol}</strong> <span class="badge b-open">${t.direction}</span></div>
+        <div style="font-size:11px;color:var(--red)">Risk −$${f2(t.risk)}</div>
+      </div>
+      <div class="live-pnl-row">
+        <span class="live-price-tag">Entry <strong>$${fmtPrice(t.entryPrice)}</strong></span>
+        ${lp?`<span class="live-price-tag">Live <strong>$${fmtPrice(lp)}</strong></span>`:'<span style="color:var(--muted)">fetching…</span>'}
+        ${livePnlHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getTrackedSymbols(){
+  const fromTrades=[...new Set((_trades||[]).map(t=>t.symbol).filter(Boolean))];
+  const watchlist=JSON.parse(localStorage.getItem('tv_watchlist')||'[]');
+  return[...new Set([...fromTrades,...watchlist])];
+}
+
+function startPriceFeed(){
+  stopPriceFeed();
+  const run=()=>{ const s=getTrackedSymbols(); if(s.length) fetchPrices(s); };
+  run();
+  _priceTimer=setInterval(run,15000);
+}
+
+function stopPriceFeed(){
+  if(_priceTimer){clearInterval(_priceTimer);_priceTimer=null;}
+}
+
+// Fill live price into calculator
+async function fillLivePrice(fieldId){
+  const inst=document.getElementById('c-inst').value;
+  let sym='';
+  if(inst.includes('Gold')) sym='XAUUSD';
+  else if(inst.includes('Silver')) sym='XAGUSD';
+  else if(inst.includes('Oil')) sym='USOIL';
+  else{
+    const inp=prompt('Enter symbol to fetch (e.g. ETHUSDT, EURUSD, BTCUSDT):');
+    if(!inp) return;
+    sym=inp.toUpperCase().trim().replace('/','');
+  }
+  let p=PRICES[sym];
+  if(!p){
+    toast('⏳ Fetching '+sym+'…');
+    await fetchPrices([sym]);
+    p=PRICES[sym];
+  }
+  if(p){
+    document.getElementById(fieldId).value=fmtPrice(p.price);
+    calcIt();
+    toast('⚡ '+sym+' live price filled: '+fmtPrice(p.price));
+  } else {
+    toast('⚠️ Could not fetch price for '+sym);
+  }
+}
+
+// Watchlist helpers
+function loadWatchlistUI(){
+  const list=JSON.parse(localStorage.getItem('tv_watchlist')||'[]');
+  const el=document.getElementById('watchlist-list');
+  if(!el) return;
+  el.innerHTML=list.length
+    ?list.map((s,i)=>`<div class="rule-item"><span style="flex:1;font-weight:600;font-size:13px">${s}<span style="font-size:10px;color:var(--muted);margin-left:6px">${classifySym(s)}</span></span><button class="btn btn-d btn-sm" onclick="removeWatchlist(${i})">✕</button></div>`).join('')
+    :'<div style="color:var(--muted);font-size:12px">No symbols added yet</div>';
+}
+function addWatchlist(){
+  const inp=document.getElementById('wl-input');
+  const sym=(inp.value||'').trim().toUpperCase().replace('/','');
+  if(!sym) return;
+  const list=JSON.parse(localStorage.getItem('tv_watchlist')||'[]');
+  if(!list.includes(sym)){list.push(sym);localStorage.setItem('tv_watchlist',JSON.stringify(list));}
+  inp.value='';
+  loadWatchlistUI();
+  startPriceFeed();
+  toast('✓ Added '+sym+' to watchlist');
+}
+function removeWatchlist(i){
+  const list=JSON.parse(localStorage.getItem('tv_watchlist')||'[]');
+  list.splice(i,1);
+  localStorage.setItem('tv_watchlist',JSON.stringify(list));
+  loadWatchlistUI();
+  startPriceFeed();
+}
+
 // ── UTILS ──────────────────────────────────────────────────
 const f2=(n,d=2)=>n==null?'—':(+n).toFixed(d);
 const pnlH=(n)=>n==null?'<span class="neu">—</span>':`<span class="${n>0?'pos':n<0?'neg':'neu'}">${n>0?'+':''}$${f2(n)}</span>`;
@@ -704,6 +933,7 @@ async function doRegister(){
   initApp();
 }
 async function doLogout(){
+  stopPriceFeed();
   await sb.auth.signOut();
   CU=null;invalidate();
   document.getElementById('app').classList.remove('show');
@@ -723,6 +953,7 @@ async function initApp(){
   await renderJournal();
   setLoader(false);
   calcIt();qrCalc();renderComp();
+  startPriceFeed(); // live price feed
 }
 
 // ── TABS ───────────────────────────────────────────────────
@@ -1014,6 +1245,7 @@ async function loadSettings(){
   const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null?v:'';};
   sv('s-cap',s.capital);sv('s-rp',s.riskPct);sv('s-dl',s.dloss);sv('s-wl',s.wloss);sv('s-ml',s.mloss);sv('s-mt',s.maxtrades);sv('s-mg',s.mgoal);sv('s-wg',s.wgoal);
   renderRules(s.rules||[...DEFAULT_RULES]);
+  loadWatchlistUI();
 }
 function renderRules(rules){document.getElementById('rules-list').innerHTML=rules.map((r,i)=>`<div class="rule-item"><span style="color:var(--muted);min-width:20px;font-size:12px">${i+1}.</span><input type="text" id="rule-${i}" value="${r}" style="flex:1"><button class="btn btn-d btn-sm" onclick="removeRule(${i})">✕</button></div>`).join('');}
 async function addRule(){const s=await getSettings();const rules=s.rules||[...DEFAULT_RULES];rules.push('New trading rule');renderRules(rules);}
