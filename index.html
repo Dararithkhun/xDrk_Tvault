@@ -1107,23 +1107,33 @@ async function showTab(name,btn){
   document.querySelectorAll('.rail-item').forEach(b=>b.classList.remove('active'));
   const navBtn=document.getElementById('nav-'+name);
   if(navBtn) navBtn.classList.add('active');
-  // Topbar
+  // Topbar title
   const meta=TAB_META[name]||{group:'',label:name};
-  document.getElementById('topbar-crumb').textContent=meta.group;
-  document.getElementById('topbar-page').textContent=meta.label;
+  const crumb=document.getElementById('topbar-crumb');
+  const page=document.getElementById('topbar-page');
+  if(crumb) crumb.textContent=meta.group;
+  if(page) page.textContent=meta.label;
   // Close mobile nav
   closeMobileNav();
+  updateMobileTab(name);
   setLoader(true);
-  if(name==='stats'){await renderStats();}
-  else if(name==='calendar'){await renderCalendar();}
-  else if(name==='comp'){renderComp();}
-  else if(name==='diary'){await renderDiary();}
-  else if(name==='settings'){await loadSettings();}
-  else if(name==='calc'){calcIt();qrCalc();}
-  else if(name==='chart'){renderWatchlistCards();if(document.getElementById('ch-sym').value)loadChart();}
-  else if(name==='backtest'){initBacktester();}
-  else if(name==='calendar-eco'){loadEcoCalendar();}
-  setLoader(false);
+  try{
+    if(name==='dash'){await renderDash();}
+    else if(name==='journal'){await renderJournal();}
+    else if(name==='stats'){await renderStats();}
+    else if(name==='calendar'){await renderCalendar();}
+    else if(name==='comp'){renderComp();}
+    else if(name==='diary'){await renderDiary();}
+    else if(name==='settings'){await loadSettings();}
+    else if(name==='calc'){calcIt();qrCalc();}
+    else if(name==='chart'){renderWatchlistCards();if(document.getElementById('ch-sym')?.value)loadChart();}
+    else if(name==='backtest'){initBacktester();}
+    else if(name==='calendar-eco'){loadEcoCalendar();}
+  }catch(e){
+    console.error('showTab error ('+name+'):',e);
+  }finally{
+    setLoader(false);
+  }
 }
 
 function updateMobileTab(name){
@@ -1237,20 +1247,26 @@ function showReg(){document.getElementById('login-box').style.display='none';doc
 function showLogin(){document.getElementById('reg-box').style.display='none';document.getElementById('login-box').style.display='block';}
 
 async function initApp(){
-  document.getElementById('auth-screen').classList.remove('show');
-  document.getElementById('app').classList.add('show');
-  const meta=CU.user_metadata||{};
-  const displayName=meta.username||CU.email;
-  document.getElementById('nav-name').textContent=displayName;
-  const avatar=document.getElementById('acct-avatar');
-  if(avatar)avatar.textContent=(displayName||'XD').slice(0,2).toUpperCase();
-  setLoader(true);
-  _currentTab='';
-  await showTab('dash',null);
-  await renderJournal();
-  setLoader(false);
-  calcIt();qrCalc();renderComp();
-  startPriceFeed();
+  try{
+    document.getElementById('auth-screen').classList.remove('show');
+    document.getElementById('app').classList.add('show');
+    const meta=CU.user_metadata||{};
+    const displayName=meta.username||CU.email;
+    const navName=document.getElementById('nav-name');
+    if(navName)navName.textContent=displayName;
+    const avatar=document.getElementById('acct-avatar');
+    if(avatar)avatar.textContent=(displayName||'XD').slice(0,2).toUpperCase();
+    setLoader(true);
+    _currentTab='';
+    await showTab('dash',null);
+    await renderJournal();
+    calcIt();qrCalc();renderComp();
+    startPriceFeed();
+  }catch(e){
+    console.error('initApp error:',e);
+  }finally{
+    setLoader(false);
+  }
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────
@@ -1380,22 +1396,31 @@ async function deleteAccount(){if(!confirm('Delete your account and ALL data per
 
 // ── INIT ──────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',async()=>{
-  initTheme();
-  // Restore rail state
-  const savedRail=localStorage.getItem('tv_rail');
-  if(savedRail)document.documentElement.dataset.rail=savedRail;
-  const{data:{session}}=await sb.auth.getSession();
-  if(session?.user){CU=session.user;await initApp();}
-  else{setLoader(false);document.getElementById('auth-screen').classList.add('show');}
-  sb.auth.onAuthStateChange(async(event,session)=>{
-    if(event==='SIGNED_IN'&&session&&!CU){CU=session.user;await initApp();}
-    if(event==='SIGNED_OUT'){CU=null;invalidate();}
-  });
-  document.getElementById('l-email').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-  document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-  document.getElementById('trade-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
-  setRange('all');
+  try{
+    initTheme();
+    const savedRail=localStorage.getItem('tv_rail');
+    if(savedRail)document.documentElement.dataset.rail=savedRail;
+    let session=null;
+    try{
+      const res=await sb.auth.getSession();
+      session=res?.data?.session;
+    }catch(e){console.warn('getSession error:',e);}
+    if(session?.user){CU=session.user;await initApp();}
+    else{setLoader(false);document.getElementById('auth-screen').classList.add('show');}
+    sb.auth.onAuthStateChange(async(event,session)=>{
+      if(event==='SIGNED_IN'&&session&&!CU){CU=session.user;await initApp();}
+      if(event==='SIGNED_OUT'){CU=null;invalidate();}
+    });
+    document.getElementById('l-email')?.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+    document.getElementById('l-pass')?.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+    document.getElementById('trade-modal')?.addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+    setRange('all');
+  }catch(e){
+    console.error('DOMContentLoaded error:',e);
+    setLoader(false);
+    document.getElementById('auth-screen')?.classList.add('show');
+  }
 });
 
 // ── Service Worker ────────────────────────────────────────
