@@ -29,7 +29,7 @@
 :root{--bg:#0d1117;--bg2:#161b22;--bg3:#1c2230;--bg4:#21262d;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--green:#3fb950;--gdim:#0d2818;--red:#f85149;--rdim:#2d0f0f;--blue:#58a6ff;--purple:#bc8cff;--yellow:#d29922;--orange:#f0883e;--accent:#238636}
 [data-theme="light"]{--bg:#f6f8fa;--bg2:#ffffff;--bg3:#f0f2f5;--bg4:#e8eaed;--border:#d0d7de;--text:#1f2328;--muted:#57606a;--green:#1a7f37;--gdim:#d1f0da;--red:#cf222e;--rdim:#ffd7d5;--blue:#0969da;--purple:#8250df;--yellow:#7d4e00;--orange:#bc4c00;--accent:#1a7f37}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;min-height:100vh}
 /* LOADING */
 #loader{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
 .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
@@ -51,9 +51,15 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .auth-err{background:var(--rdim);color:var(--red);border:1px solid #5a1a1a;border-radius:6px;padding:8px 12px;font-size:13px;display:none;margin-bottom:6px}
 .auth-ok{background:var(--gdim);color:var(--green);border:1px solid #1a4a22;border-radius:6px;padding:8px 12px;font-size:13px;display:none;margin-bottom:6px}
 /* APP */
-#app{display:none;max-width:100%;overflow-x:hidden}
+#app{display:none}
 #app.show{display:block}
-.nav{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:100;padding-top:env(safe-area-inset-top)}
+/* Nav: fixed on mobile so sticky isn't broken by overflow parents */
+.nav{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:100}
+/* iOS PWA safe-area: push nav below status bar */
+@supports(padding-top:env(safe-area-inset-top)){
+  .nav{padding-top:env(safe-area-inset-top)}
+  #nav-spacer{height:env(safe-area-inset-top)}
+}
 .nav-brand{font-weight:800;font-size:15px;color:var(--blue);padding:0 14px;border-right:1px solid var(--border);margin-right:4px;white-space:nowrap;display:flex;align-items:center;min-height:48px}
 .nav-brand span{color:var(--green)}
 .nav-tabs{display:flex;align-items:center;gap:0;overflow-x:auto;flex:1;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -64,7 +70,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .nav-user{font-size:12px;color:var(--muted)}.nav-user strong{color:var(--text)}
 .btn-logout{padding:5px 12px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:5px;cursor:pointer;font-size:12px}
 .btn-logout:hover{color:var(--red);border-color:var(--red)}
-.tab{display:none;padding:18px;max-width:1600px;margin:0 auto}.tab.active{display:block}
+.tab{display:none;padding:18px;max-width:1600px;margin:0 auto;max-width:100vw;overflow-x:hidden}.tab.active{display:block}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;transition:border-color .15s;box-shadow:0 1px 4px rgba(0,0,0,.25)}
 .card:hover{border-color:#444}
 [data-theme="light"] .card{box-shadow:0 1px 4px rgba(0,0,0,.07)}
@@ -213,8 +219,9 @@ tr:hover td{background:var(--bg3)}
    RESPONSIVE — MOBILE (≤ 768px)
 ══════════════════════════════════════════════════ */
 @media(max-width:768px){
-  /* Navigation — hamburger mode */
-  .nav{padding:0;position:relative}
+  /* Navigation — fixed on mobile to avoid iOS sticky bugs */
+  .nav{position:fixed;top:0;left:0;right:0;padding-top:env(safe-area-inset-top)}
+  #nav-spacer{display:block;height:calc(48px + env(safe-area-inset-top))}
   .nav-brand{padding:0 14px;font-size:15px;border-right:none;flex:1}
   .nav-end{padding:0 4px;gap:4px}
   .nav-user{display:none}
@@ -435,6 +442,7 @@ tr:hover td{background:var(--bg3)}
     <button class="mm-btn" onclick="doLogout()" style="color:var(--red)"><span class="mm-icon">🚪</span>Logout</button>
   </div>
 </nav>
+<div id="nav-spacer" style="display:none"></div>
 
 <!-- DASHBOARD -->
 <div id="tab-dash" class="tab active">
