@@ -50,7 +50,8 @@
   --shadow-card:0 0 0 1px var(--line),0 1px 2px rgba(15,20,40,.04);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg-0);color:var(--fg);font-family:var(--font-ui);font-size:13px;font-feature-settings:"ss01","cv11";letter-spacing:-0.005em;min-height:100vh;-webkit-font-smoothing:antialiased;}
+html{height:-webkit-fill-available}
+html,body{background:var(--bg-0);color:var(--fg);font-family:var(--font-ui);font-size:13px;font-feature-settings:"ss01","cv11";letter-spacing:-0.005em;min-height:100vh;min-height:-webkit-fill-available;-webkit-font-smoothing:antialiased;}
 button{font-family:inherit;}
 ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bg-4);border-radius:4px;border:2px solid var(--bg-0)}::-webkit-scrollbar-thumb:hover{background:var(--bg-5)}
 
@@ -84,7 +85,7 @@ button{font-family:inherit;}
 /* ── APP SHELL ── */
 #app{display:none}
 #app.show{display:block}
-.app{display:grid;grid-template-columns:220px 1fr;grid-template-rows:52px 1fr;grid-template-areas:"rail topbar" "rail main";height:100vh}
+.app{display:grid;grid-template-columns:220px 1fr;grid-template-rows:52px 1fr;grid-template-areas:"rail topbar" "rail main";height:100vh;height:100dvh}
 [data-rail="collapsed"] .app{grid-template-columns:56px 1fr}
 
 /* ── RAIL ── */
@@ -119,7 +120,7 @@ button{font-family:inherit;}
 .rail-close{display:none;margin-left:auto}
 
 /* ── TOPBAR ── */
-.topbar{grid-area:topbar;background:var(--bg-1);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 18px;gap:14px;padding-top:env(safe-area-inset-top)}
+.topbar{grid-area:topbar;background:var(--bg-1);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 18px;gap:14px}
 .topbar-title{font-size:14px;font-weight:600;letter-spacing:-0.01em}
 .topbar-title .crumb{color:var(--fg-3);font-weight:400;margin-right:8px}
 .topbar-stats{display:flex;gap:0;margin-left:auto;align-items:stretch}
@@ -401,14 +402,28 @@ tr:hover .row-actions{opacity:1}
 /* ── MOBILE (≤900px) ── */
 @media(max-width:900px){
   body{font-size:14px}
-  .app{grid-template-columns:1fr!important;grid-template-rows:52px 1fr;grid-template-areas:"topbar" "main"}
+  /* Use fill-available / dvh so iOS address bar doesn't eat layout */
+  .app{
+    grid-template-columns:1fr!important;
+    grid-template-rows:calc(52px + env(safe-area-inset-top,0px)) 1fr;
+    grid-template-areas:"topbar" "main";
+    height:100vh;height:100dvh;
+  }
+  /* Rail: off-canvas drawer, not part of the grid */
   .rail{position:fixed;top:0;left:0;bottom:0;width:260px;z-index:200;transform:translateX(-100%);transition:transform .22s ease;border-right:1px solid var(--line);grid-area:unset!important}
   .mobile-nav-open .rail{transform:translateX(0)}
   .mobile-nav-open .mobile-overlay{display:block;position:fixed;inset:0;background:rgba(3,5,9,.55);backdrop-filter:blur(2px);z-index:150}
   .rail-name,.rail-item .lbl,.rail-section-label,.acct-info{display:flex}
   .rail-name{display:flex}.rail-item .lbl{display:inline}.rail-section-label{display:block}.acct-info{display:block}
   .rail-close{display:grid}
-  .topbar{padding:0 12px;gap:10px}
+  /* Topbar: fixed height = 52px + notch inset, padding-top absorbs the notch */
+  .topbar{
+    padding:0 12px;
+    padding-top:env(safe-area-inset-top,0px);
+    gap:10px;
+    /* Sticky at top of the grid area — stays put while main scrolls */
+    position:sticky;top:0;z-index:100;
+  }
   .topbar-menu{display:grid}
   .topbar-collapse{display:none}
   .topbar-title{font-size:13px}
@@ -433,7 +448,7 @@ tr:hover .row-actions{opacity:1}
   .diary-layout,.diary-grid{grid-template-columns:1fr;height:auto}
   .diary-list{max-height:260px}
   .diary-list-shell{max-height:260px}
-  .modal{width:100vw;max-width:100vw;height:100vh;max-height:100vh;border-radius:0}
+  .modal{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border-radius:0}
   .form-grid.f4,.fgrid.f4{grid-template-columns:repeat(2,1fr)}
   .form-grid.f2,.fgrid.f2{grid-template-columns:1fr}
   .modal-body,.mbody{padding:16px}
