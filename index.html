@@ -15,6 +15,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TradeVault">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon.ico">
+<link rel="shortcut icon" href="favicon.ico">
 
 <!-- Android / general -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -213,9 +215,10 @@ tr:hover td{background:var(--bg3)}
 @media(max-width:768px){
   /* Navigation — hamburger mode */
   .nav{padding:0;position:relative}
-  .nav-brand{padding:0 12px;font-size:14px;border-right:none;flex:1}
-  .nav-end{padding:0 10px;gap:6px}
-  .nav-user{font-size:11px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .nav-brand{padding:0 14px;font-size:15px;border-right:none;flex:1}
+  .nav-end{padding:0 4px;gap:4px}
+  .nav-user{display:none}
+  .btn-logout{display:none}
   .nav-tabs{display:none}
   .hamburger-btn{display:flex;align-items:center}
   .tb{padding:10px 10px;font-size:12px}
@@ -428,6 +431,8 @@ tr:hover td{background:var(--bg3)}
     <button class="mm-btn" onclick="showTab('diary',null);closeMobileMenu()"><span class="mm-icon">📓</span>Diary</button>
     <button class="mm-btn" onclick="showTab('backtest',null);closeMobileMenu()"><span class="mm-icon">🔬</span>Backtest</button>
     <button class="mm-btn" onclick="showTab('settings',null);closeMobileMenu()"><span class="mm-icon">⚙️</span>Settings</button>
+    <div style="height:1px;background:var(--border);margin:6px 0"></div>
+    <button class="mm-btn" onclick="doLogout()" style="color:var(--red)"><span class="mm-icon">🚪</span>Logout</button>
   </div>
 </nav>
 
