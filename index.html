@@ -14,7 +14,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="description" content="Professional trading journal — track, analyse and grow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
@@ -33,7 +33,7 @@
   --accent:oklch(var(--acc-l) var(--acc-c) var(--acc-h));
   --accent-soft:oklch(var(--acc-l) var(--acc-c) var(--acc-h) / 0.14);
   --accent-fg:#04140e;
-  --font-ui:'Inter',system-ui,-apple-system,sans-serif;
+  --font-ui:'Poppins',system-ui,-apple-system,sans-serif;
   --font-mono:'JetBrains Mono','SF Mono',Menlo,monospace;
   --d-row:32px; --d-cell-y:8px; --d-cell-x:12px; --d-card-pad:16px;
   --d-radius:8px; --d-radius-sm:6px;
@@ -45,13 +45,20 @@
 [data-theme="paper"] {
   --bg-0:#f4f5f7; --bg-1:#ffffff; --bg-2:#ffffff; --bg-3:#f7f8fa; --bg-4:#eef0f4; --bg-5:#e6e8ed;
   --line:#e2e5eb; --line-2:#cdd2dc;
-  --fg:#0a0e1a; --fg-2:#475066; --fg-3:#7a8395; --fg-4:#a3acbd;
+  --fg:#0a0e1a; --fg-2:#2e3a4e; --fg-3:#525c6e; --fg-4:#7a8395;
   --up-dim:#d8f5e8; --down-dim:#ffe1e6; --warn-dim:#fff2d4;
   --shadow-card:0 0 0 1px var(--line),0 1px 2px rgba(15,20,40,.04);
 }
+/* paper theme: light-safe overrides for hardcoded dark chip/badge/grade backgrounds */
+[data-theme="paper"] .b-ap{background:#ede6ff;color:#5a1fa0}
+[data-theme="paper"] .b-a{background:#deeaff;color:#1a4fad;border-color:#a8c4f0}
+[data-theme="paper"] .b-open{background:#deeaff;color:#1a4fad}
+[data-theme="paper"] .chip-info{background:#deeaff;color:#1a4fad;border-color:#a8c4f0}
+[data-theme="paper"] .grade.b,[data-theme="paper"] .gc-b{background:#fef3d0;color:#7a5000;border-color:#e8d080}
+[data-theme="paper"] .b-fin{background:var(--bg-4);color:var(--fg-2)}
 *{box-sizing:border-box;margin:0;padding:0}
 html{height:-webkit-fill-available}
-html,body{background:var(--bg-0);color:var(--fg);font-family:var(--font-ui);font-size:13px;font-feature-settings:"ss01","cv11";letter-spacing:-0.005em;min-height:100vh;min-height:-webkit-fill-available;-webkit-font-smoothing:antialiased;}
+html,body{background:var(--bg-0);color:var(--fg);font-family:var(--font-ui);font-size:13px;min-height:100vh;min-height:-webkit-fill-available;-webkit-font-smoothing:antialiased;}
 button{font-family:inherit;}
 ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bg-4);border-radius:4px;border:2px solid var(--bg-0)}::-webkit-scrollbar-thumb:hover{background:var(--bg-5)}
 
@@ -138,7 +145,7 @@ button{font-family:inherit;}
 
 /* ── MAIN ── */
 .main{grid-area:main;overflow-y:auto;overflow-x:hidden;background:var(--bg-0)}
-.main-inner{padding:20px 24px 60px;max-width:1640px}
+.main-inner{padding:20px 24px 60px}
 
 /* ── PRIMITIVES ── */
 .card{background:var(--bg-2);border-radius:var(--d-radius);box-shadow:var(--shadow-card)}
@@ -174,6 +181,16 @@ select option{background:var(--bg-3)}
 .up,.pos{color:var(--up)} .down,.neg{color:var(--down)} .muted,.neu{color:var(--fg-3)}
 .mono{font-family:var(--font-mono);font-feature-settings:"tnum"}
 .divider{height:1px;background:var(--line);margin:14px 0}
+/* ── PAGINATION ── */
+.pagination{display:flex;align-items:center;gap:6px;padding:10px 0;flex-wrap:wrap}
+.pagination button{min-width:30px;height:28px;padding:0 8px;background:var(--bg-3);border:1px solid var(--line);color:var(--fg-2);border-radius:5px;font-size:12px;font-family:var(--font-ui);cursor:pointer;transition:.12s}
+.pagination button:hover{background:var(--bg-4);border-color:var(--line-2);color:var(--fg)}
+.pagination button.active{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:700}
+.pagination button:disabled{opacity:.35;cursor:default}
+.pagination .page-info{font-size:12px;color:var(--fg-3);margin:0 4px}
+/* ── DIARY DELETE BTN ── */
+.dentry-del{background:none;border:none;color:var(--fg-4);cursor:pointer;padding:2px 5px;border-radius:4px;font-size:13px;line-height:1;transition:.12s}
+.dentry-del:hover{color:var(--down);background:var(--down-dim)}
 .seg{display:inline-flex;background:var(--bg-3);border:1px solid var(--line);border-radius:var(--d-radius-sm);padding:2px;gap:0}
 .seg button{padding:5px 11px;background:transparent;border:none;color:var(--fg-3);font-size:11.5px;font-weight:600;cursor:pointer;border-radius:4px}
 .seg button.active{background:var(--bg-2);color:var(--fg);box-shadow:0 0 0 1px var(--line)}
@@ -288,7 +305,7 @@ tr:hover .row-actions{opacity:1}
 .overlay,.modal-overlay{position:fixed;inset:0;background:rgba(3,5,9,.7);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;animation:fadeIn .15s ease}
 .overlay.open,.modal-overlay.open{display:flex}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.modal{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;width:100%;max-width:720px;margin:auto;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 48px rgba(0,0,0,.6);animation:slideUp .18s ease}
+.modal{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;width:100%;max-width:70vw;margin:auto;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 48px rgba(0,0,0,.6);animation:slideUp .18s ease}
 @keyframes slideUp{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
 .modal-head,.mhdr{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
 .modal-head h2,.mtitle{font-size:15px;font-weight:600;letter-spacing:-0.01em}
@@ -360,7 +377,7 @@ tr:hover .row-actions{opacity:1}
 .dentry,.diary-list-row{padding:10px 12px;background:var(--bg-2);border:1px solid var(--line);border-radius:6px;cursor:pointer;transition:.12s}
 .dentry:hover,.dentry.active,.diary-list-row:hover,.diary-list-row.active{border-color:var(--accent)}
 .diary-list-row.active{background:var(--bg-3);border-left:2px solid var(--accent);padding-left:12px}
-.dentry-date,.diary-list-row .d{font-weight:600;font-size:13px;font-size:11px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.08em}
+.dentry-date,.diary-list-row .d{font-weight:600;font-size:11px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.08em}
 .dentry-preview,.diary-list-row .preview{font-size:11.5px;color:var(--fg-3);margin-top:4px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .mood-btn,.mood-strip button{background:none;border:2px solid var(--line);border-radius:6px;font-size:17px;padding:4px 10px;cursor:pointer;flex:1}
 .mood-btn.sel,.mood-strip button.active{border-color:var(--accent);background:var(--bg-3)}
@@ -444,11 +461,18 @@ tr:hover .row-actions{opacity:1}
   .cal-day .num{font-size:10px}.cal-day .pl{font-size:10.5px}.cal-day .ct{display:none}
   .cal-month-bar{padding:12px;gap:8px;flex-wrap:wrap}
   .cal-month-bar h2{font-size:16px}
-  .cgrid{min-width:0;grid-template-columns:repeat(7,1fr)}
+  .cgrid{min-width:0;grid-template-columns:repeat(7,minmax(0,1fr))}
+  .ccell{min-height:56px;padding:3px 2px}
+  .cdate{font-size:10px}
+  .cpnl{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .ccount{font-size:9px}
+  .cdlabel{font-size:9px;padding:4px 2px;letter-spacing:0}
+  .cwcell{min-height:56px}
   .diary-layout,.diary-grid{grid-template-columns:1fr;height:auto}
   .diary-list{max-height:260px}
   .diary-list-shell{max-height:260px}
-  .modal{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border-radius:0}
+  .overlay,.modal-overlay{align-items:flex-end;padding:0}
+  .modal{width:100vw;max-width:100vw;height:80dvh;max-height:80dvh;border-radius:12px 12px 0 0;margin:0}
   .form-grid.f4,.fgrid.f4{grid-template-columns:repeat(2,1fr)}
   .form-grid.f2,.fgrid.f2{grid-template-columns:1fr}
   .modal-body,.mbody{padding:16px}
@@ -456,14 +480,11 @@ tr:hover .row-actions{opacity:1}
   .comp-wrap{grid-template-columns:1fr}
   .settings-section{padding:14px 16px}
   .settings-section>.fgrid.f2,.settings-grid-2{grid-template-columns:1fr}
-  .mobile-tabbar{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;bottom:0;left:0;right:0;background:var(--bg-1);border-top:1px solid var(--line);z-index:90;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .mobile-tabbar{display:grid;grid-template-columns:repeat(6,1fr);position:fixed;bottom:0;left:0;right:0;background:var(--bg-1);border-top:1px solid var(--line);z-index:90;padding-bottom:env(safe-area-inset-bottom,0px)}
   .mobile-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px;background:transparent;border:none;color:var(--fg-3);cursor:pointer;min-height:56px}
   .mobile-tab.active{color:var(--accent)}
   .mobile-tab .ic{display:grid;place-items:center}
-  .mobile-tab .lb{font-size:10px;font-weight:600;letter-spacing:.02em}
-  .mobile-tab.fab{position:relative}
-  .mobile-tab.fab::before{content:"";position:absolute;top:-16px;left:50%;transform:translateX(-50%);width:48px;height:48px;background:var(--accent);border-radius:50%;box-shadow:0 6px 18px var(--accent-soft),0 0 0 4px var(--bg-1)}
-  .mobile-tab.fab .ic{position:relative;color:var(--accent-fg);margin-top:-16px;z-index:1}
+  .mobile-tab .lb{font-size:9px;font-weight:600;letter-spacing:.01em}
   .chart-canvas{height:320px!important}
   .chart-toolbar{gap:8px;padding:8px}
   .sym-display{padding-right:8px}
@@ -616,21 +637,16 @@ tr:hover .row-actions{opacity:1}
       <div class="tb-stat"><span class="lbl">Today</span><span class="val mono" id="tb-today">—</span></div>
       <div class="tb-stat"><span class="lbl">Open</span><span class="val mono" id="tb-open">0</span></div>
       <div class="tb-stat"><span class="lbl">Win Rate</span><span class="val mono" id="tb-wr">—</span></div>
+      <div class="tb-stat"><span class="lbl">Session</span><span class="val" id="tb-session">—</span></div>
     </div>
     <div class="topbar-actions">
-      <button class="icon-btn" title="Search">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M11 11a6 6 0 100-12 6 6 0 000 12zM21 21l-5-5"/></svg>
-      </button>
-      <button class="icon-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 3v1M12 20v1M4.22 4.22l.7.7M18.36 18.36l.7.7M3 12h1M20 12h1M4.22 19.78l.7-.7M18.36 5.64l.7-.7M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
+      <button class="icon-btn" id="theme-btn" onclick="applyTheme(({dark:'paper',paper:'midnight',midnight:'dark'})[document.documentElement.getAttribute('data-theme')||'dark']||'dark')" title="Toggle theme">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
       </button>
       <button class="icon-btn" onclick="doLogout()" title="Logout" style="color:var(--fg-3)">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M16 17l5-5-5-5M21 12H9M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/></svg>
       </button>
-      <button class="btn btn-primary topbar-add" onclick="openModal()" style="gap:6px">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M12 5v14"/></svg>
-        <span class="lbl-full">New Trade</span>
-      </button>
+
     </div>
   </header>
 
@@ -646,15 +662,30 @@ tr:hover .row-actions{opacity:1}
           <div class="sub" id="dash-date"></div>
         </div>
         <div class="sgrid" id="dash-cards"></div>
-        <div class="c22" style="margin-bottom:14px">
-          <div class="cbox">
-            <h3>Recent Trades</h3>
-            <div class="twrap"><table><thead><tr><th>ID</th><th>Symbol</th><th>Dir</th><th>Grade</th><th>P&amp;L</th><th>Date</th></tr></thead><tbody id="dash-recent"></tbody></table></div>
+        <div class="c2" style="margin-bottom:14px">
+          <div style="background:var(--bg-2);border-radius:var(--d-radius);box-shadow:var(--shadow-card);overflow:hidden">
+            <div class="card-head">
+              <h3 id="dash-recent-title">Recent Trades</h3>
+              <div class="actions">
+                <div class="seg">
+                  <button id="dv-recent" class="active" onclick="setDashView('recent')">Recent</button>
+                  <button id="dv-top" onclick="setDashView('top')">Top Gain</button>
+                  <button id="dv-loss" onclick="setDashView('loss')">Top Loss</button>
+                </div>
+              </div>
+            </div>
+            <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="min-width:520px"><thead><tr><th>ID</th><th>Symbol</th><th>Dir</th><th>Grade</th><th>P&amp;L</th><th>Date</th></tr></thead><tbody id="dash-recent"></tbody></table></div>
           </div>
-          <div class="cbox">
-            <h3>Open Positions</h3>
-            <div id="dash-open"></div>
-            <div style="margin-top:14px"><h3 style="margin-bottom:8px">Monthly Goal</h3><div id="dash-goal"></div></div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="cbox">
+              <h3>Open Positions</h3>
+              <div id="dash-open"></div>
+              <div style="margin-top:14px"><h3 style="margin-bottom:8px">Monthly Goal</h3><div id="dash-goal"></div></div>
+            </div>
+            <div class="cbox" id="dash-diary-card" style="display:none">
+              <h3 style="margin-bottom:8px">Latest Diary</h3>
+              <div id="dash-diary"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -670,16 +701,17 @@ tr:hover .row-actions{opacity:1}
           <button class="btn btn-primary" onclick="openModal()">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M12 5v14"/></svg> Add Trade
           </button>
-          <input type="text" id="j-search" placeholder="Search symbol, strategy…" style="width:180px" oninput="renderJournal()">
-          <select id="j-fs" onchange="renderJournal()"><option value="">All Status</option><option>Finished</option><option>Open</option><option>Cancelled</option></select>
-          <select id="j-fd" onchange="renderJournal()"><option value="">All Dir</option><option>Long</option><option>Short</option></select>
-          <select id="j-fg" onchange="renderJournal()"><option value="">All Grades</option><option>A+</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
+          <input type="text" id="j-search" placeholder="Search symbol, strategy…" style="width:180px" oninput="renderJournal(true)">
+          <select id="j-fs" onchange="renderJournal(true)"><option value="">All Status</option><option>Finished</option><option>Open</option><option>Cancelled</option></select>
+          <select id="j-fd" onchange="renderJournal(true)"><option value="">All Dir</option><option>Long</option><option>Short</option></select>
+          <select id="j-fg" onchange="renderJournal(true)"><option value="">All Grades</option><option>A+</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
           <button class="btn" onclick="exportCSV()">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg> Export CSV
           </button>
           <span id="j-count" style="color:var(--fg-3);font-size:12px;margin-left:auto"></span>
         </div>
         <div class="twrap"><table><thead><tr><th>ID</th><th>Status</th><th>Symbol</th><th>Dir</th><th>Grade</th><th>Emotion</th><th>Rules</th><th>Session</th><th>Strategy</th><th>Entry Date</th><th>Qty</th><th class="num">Entry$</th><th class="num">Stop$</th><th class="num">Exit$</th><th class="num">Net P&amp;L</th><th class="num">Risk$</th><th class="num">R:R</th><th>Actions</th></tr></thead><tbody id="j-tbody"></tbody></table></div>
+        <div class="pagination" id="j-pagination"></div>
       </div>
 
       <!-- CALENDAR -->
@@ -907,6 +939,25 @@ tr:hover .row-actions{opacity:1}
         </div>
         <div style="max-width:700px">
           <div class="settings-section">
+            <h3>Appearance</h3>
+            <div class="fgrid f2" style="gap:10px">
+              <div class="fg"><label>Theme</label>
+                <select id="s-theme" onchange="applyTheme(this.value)">
+                  <option value="dark">Dark</option>
+                  <option value="paper">Light</option>
+                  <option value="midnight">Midnight</option>
+                </select>
+              </div>
+              <div class="fg"><label>Density</label>
+                <select id="s-density" onchange="applyDensity(this.value)">
+                  <option value="">Default</option>
+                  <option value="compact">Compact</option>
+                  <option value="comfy">Spacious</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
             <h3>Account</h3>
             <div class="fgrid f2" style="gap:10px">
               <div class="fg"><label>Starting Capital ($)</label><input type="number" id="s-cap"></div>
@@ -1042,16 +1093,21 @@ tr:hover .row-actions{opacity:1}
     <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 4h11l3 3v13H5zM9 9h7M9 13h7M9 17h4"/></svg></span>
     <span class="lb">Journal</span>
   </button>
-  <button class="mobile-tab fab" onclick="openModal()">
-    <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M12 5v14"/></svg></span>
-  </button>
   <button class="mobile-tab" id="mob-stats" onclick="showTab('stats',this);updateMobileTab('stats')">
     <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 20V8M10 20V4M16 20v-7M22 20H2"/></svg></span>
     <span class="lb">Stats</span>
   </button>
-  <button class="mobile-tab" id="mob-chart" onclick="showTab('chart',this);updateMobileTab('chart')">
-    <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 17l5-5 4 4 6-8 3 3M21 21H3"/></svg></span>
-    <span class="lb">Chart</span>
+  <button class="mobile-tab" id="mob-calc" onclick="showTab('calc',this);updateMobileTab('calc')">
+    <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 3h14v18H5zM9 7h6M8 11h2M12 11h2M16 11h2M8 15h2M12 15h2M16 15h2M8 19h6"/></svg></span>
+    <span class="lb">Calc</span>
+  </button>
+  <button class="mobile-tab" id="mob-diary" onclick="showTab('diary',this);updateMobileTab('diary')">
+    <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 3h11l3 3v15H6zM6 3v18M10 8h6M10 12h6M10 16h4"/></svg></span>
+    <span class="lb">Diary</span>
+  </button>
+  <button class="mobile-tab" id="mob-calendar-eco" onclick="showTab('calendar-eco',this);updateMobileTab('calendar-eco')">
+    <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 4h11l3 3v13H5zM8 9h8M8 13h8M8 17h5"/></svg></span>
+    <span class="lb">News</span>
   </button>
 </nav>
 <script>
@@ -1060,23 +1116,25 @@ const SKEY='sb_publishable_T_FHK6ZU71p0PDGRu57n9A_wsBmzF5R';
 const sb=window.supabase.createClient(SURL,SKEY);
 
 // ── THEME ──────────────────────────────────────────────────
-function toggleTheme(){
-  const cur=document.documentElement.getAttribute('data-theme')||'dark';
-  let next;
-  if(cur==='dark'||cur===''){next='paper';}
-  else if(cur==='paper'){next='midnight';}
-  else{next='';}
-  if(next){document.documentElement.setAttribute('data-theme',next);}
+function applyTheme(v){
+  if(v&&v!=='dark'){document.documentElement.setAttribute('data-theme',v);}
   else{document.documentElement.removeAttribute('data-theme');}
-  localStorage.setItem('tv_theme',next||'dark');
+  localStorage.setItem('tv_theme',v||'dark');
   if(_chart&&document.getElementById('ch-sym')?.value) loadChart();
   const ecoWrap=document.querySelector('#eco-cal-wrap .tradingview-widget-container__widget');
   if(ecoWrap){ecoWrap.innerHTML='';loadEcoCalendar();}
+}
+function applyDensity(v){
+  if(v){document.documentElement.setAttribute('data-density',v);}
+  else{document.documentElement.removeAttribute('data-density');}
+  localStorage.setItem('tv_density',v||'');
 }
 function initTheme(){
   const saved=localStorage.getItem('tv_theme');
   if(saved&&saved!=='dark'){document.documentElement.setAttribute('data-theme',saved);}
   else{document.documentElement.removeAttribute('data-theme');}
+  const density=localStorage.getItem('tv_density');
+  if(density){document.documentElement.setAttribute('data-density',density);}
 }
 
 // ── RAIL / MOBILE NAV ─────────────────────────────────────
@@ -1198,6 +1256,8 @@ const SEED=[
 
 // ── STATE ─────────────────────────────────────────────────
 let CU=null,_trades=null,_settings=null,_diary=null;
+let _jPage=0;const J_PER_PAGE=20;
+let _dashView='recent';
 
 // ── LIVE PRICE ENGINE ─────────────────────────────────────
 const PRICES={};let _priceTimer=null;
@@ -1215,14 +1275,14 @@ function refreshOpenPnl(){const el=document.getElementById('dash-open');if(!el||
 function getTrackedSymbols(){const fromTrades=[...new Set((_trades||[]).map(t=>t.symbol).filter(Boolean))];const watchlist=JSON.parse(localStorage.getItem('tv_watchlist')||'[]');return[...new Set([...fromTrades,...watchlist])];}
 function startPriceFeed(){stopPriceFeed();const run=()=>{const s=getTrackedSymbols();if(s.length)fetchPrices(s);};run();_priceTimer=setInterval(run,15000);}
 function stopPriceFeed(){if(_priceTimer){clearInterval(_priceTimer);_priceTimer=null;}}
-function updateTopbarStats(){if(!_trades)return;const fin=_trades.filter(t=>t.status==='Finished'&&t.netPnl!=null);const totalPnl=fin.reduce((s,t)=>s+t.netPnl,0);const s=_settings||{capital:1000};const cap=s.capital||1000;const open=_trades.filter(t=>t.status==='Open');const wins=fin.filter(t=>t.netPnl>0);const wr=fin.length?wins.length/fin.length:0;const td=today();const todayPnl=fin.filter(t=>(t.exitDate||t.entryDate)===td).reduce((s,t)=>s+t.netPnl,0);const balEl=document.getElementById('tb-balance');const todEl=document.getElementById('tb-today');const opEl=document.getElementById('tb-open');const wrEl=document.getElementById('tb-wr');if(balEl)balEl.textContent='$'+f2(cap+totalPnl);if(todEl){todEl.textContent=(todayPnl>=0?'+':'')+'$'+f2(todayPnl);todEl.className='val mono '+(todayPnl>=0?'up':'down');}if(opEl)opEl.textContent=open.length;if(wrEl)wrEl.textContent=f2(wr*100,1)+'%';}
+function updateTopbarStats(){if(!_trades)return;const fin=_trades.filter(t=>t.status==='Finished'&&t.netPnl!=null);const totalPnl=fin.reduce((s,t)=>s+t.netPnl,0);const s=_settings||{capital:1000};const cap=s.capital||1000;const open=_trades.filter(t=>t.status==='Open');const wins=fin.filter(t=>t.netPnl>0);const wr=fin.length?wins.length/fin.length:0;const td=today();const todayPnl=fin.filter(t=>(t.exitDate||t.entryDate)===td).reduce((s,t)=>s+t.netPnl,0);const balEl=document.getElementById('tb-balance');const todEl=document.getElementById('tb-today');const opEl=document.getElementById('tb-open');const wrEl=document.getElementById('tb-wr');if(balEl)balEl.textContent='$'+f2(cap+totalPnl);if(todEl){todEl.textContent=(todayPnl>=0?'+':'')+'$'+f2(todayPnl);todEl.className='val mono '+(todayPnl>=0?'up':'down');}if(opEl)opEl.textContent=open.length;if(wrEl)wrEl.textContent=f2(wr*100,1)+'%';updateSessionStat();}
 
 // ── CHART ─────────────────────────────────────────────────
 let _chart=null,_candleSeries=null,_currentTf='1h';
 const TF_BINANCE={'1h':'1h','4h':'4h','1d':'1d','1w':'1w'};
 const TF_LIMIT={'1h':200,'4h':200,'1d':365,'1w':104};
 function setTf(tf,btn){_currentTf=tf;document.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
-function buildChart(){const wrap=document.getElementById('chart-wrap');if(!wrap)return;if(_chart){_chart.remove();_chart=null;_candleSeries=null;}const isDark=document.documentElement.getAttribute('data-theme')!=='paper';const bg=isDark?'#0b0f15':'#ffffff';const textC=isDark?'#6c7689':'#7a8395';const gridC=isDark?'#1e2532':'#e2e5eb';_chart=LightweightCharts.createChart(wrap,{width:wrap.clientWidth,height:460,layout:{background:{color:bg},textColor:textC},grid:{vertLines:{color:gridC},horzLines:{color:gridC}},rightPriceScale:{borderColor:isDark?'#1e2532':'#e2e5eb'},timeScale:{borderColor:isDark?'#1e2532':'#e2e5eb',timeVisible:true},crosshair:{mode:LightweightCharts.CrosshairMode.Normal}});_candleSeries=_chart.addCandlestickSeries({upColor:'#22c993',downColor:'#ff5470',borderUpColor:'#22c993',borderDownColor:'#ff5470',wickUpColor:'#22c993',wickDownColor:'#ff5470'});new ResizeObserver(()=>{if(_chart)_chart.applyOptions({width:wrap.clientWidth});}).observe(wrap);}
+function buildChart(){const wrap=document.getElementById('chart-wrap');if(!wrap)return;if(_chart){_chart.remove();_chart=null;_candleSeries=null;}const theme=document.documentElement.getAttribute('data-theme')||'dark';const isDark=theme!=='paper';const isMidnight=theme==='midnight';const bg=isDark?(isMidnight?'#08102a':'#0b0f15'):'#ffffff';const textC=isDark?'#aab4c5':'#525c6e';const gridC=isDark?(isMidnight?'#1a2752':'#1e2532'):'#e2e5eb';_chart=LightweightCharts.createChart(wrap,{width:wrap.clientWidth,height:460,layout:{background:{color:bg},textColor:textC},grid:{vertLines:{color:gridC},horzLines:{color:gridC}},rightPriceScale:{borderColor:gridC},timeScale:{borderColor:gridC,timeVisible:true},crosshair:{mode:LightweightCharts.CrosshairMode.Normal}});_candleSeries=_chart.addCandlestickSeries({upColor:'#22c993',downColor:'#ff5470',borderUpColor:'#22c993',borderDownColor:'#ff5470',wickUpColor:'#22c993',wickDownColor:'#ff5470'});new ResizeObserver(()=>{if(_chart)_chart.applyOptions({width:wrap.clientWidth});}).observe(wrap);}
 async function loadChart(){const rawSym=(document.getElementById('ch-sym').value||'').trim().toUpperCase().replace('/','');if(!rawSym){document.getElementById('ch-info').textContent='Enter a symbol first';return;}document.getElementById('ch-info').textContent='Loading…';buildChart();const interval=TF_BINANCE[_currentTf]||'1d';const limit=TF_LIMIT[_currentTf]||200;try{const res=await fetch(`https://api.binance.com/api/v3/klines?symbol=${rawSym}&interval=${interval}&limit=${limit}`);const raw=await res.json();if(!Array.isArray(raw)||raw.code){document.getElementById('ch-info').textContent='Symbol not found on Binance.';return;}const candles=raw.map(k=>({time:Math.floor(k[0]/1000),open:parseFloat(k[1]),high:parseFloat(k[2]),low:parseFloat(k[3]),close:parseFloat(k[4])}));_candleSeries.setData(candles);if(_trades){const symTrades=_trades.filter(t=>(t.symbol||'').toUpperCase().replace('/','')=== rawSym&&t.entryDate);const markers=[];symTrades.forEach(t=>{const entryTs=Math.floor(new Date(t.entryDate+'T'+(t.entryTime||'00:00')+':00Z').getTime()/1000);markers.push({time:entryTs,position:t.direction==='Long'?'belowBar':'aboveBar',color:t.direction==='Long'?'#22c993':'#ff5470',shape:t.direction==='Long'?'arrowUp':'arrowDown',text:(t.grade||'')+(t.netPnl!=null?(t.netPnl>=0?' +$':' -$')+Math.abs(t.netPnl).toFixed(2):''),size:1});if(t.exitDate&&t.status==='Finished'){const exitTs=Math.floor(new Date(t.exitDate+'T'+(t.exitTime||'00:00')+':00Z').getTime()/1000);markers.push({time:exitTs,position:t.direction==='Long'?'aboveBar':'belowBar',color:'#6c7689',shape:'circle',text:'Exit',size:0.8});}});markers.sort((a,b)=>a.time-b.time);if(markers.length)_candleSeries.setMarkers(markers);renderChartTradeList(symTrades,rawSym);}document.getElementById('ch-info').textContent=rawSym+' · '+interval.toUpperCase()+' · '+candles.length+' candles';_chart.timeScale().fitContent();}catch(e){document.getElementById('ch-info').textContent='Error: '+e.message;}}
 function renderChartTradeList(trades,sym){const el=document.getElementById('ch-trade-list');if(!el)return;if(!trades.length){el.innerHTML='';return;}el.innerHTML=`<div class="cbox"><h3>Trades on ${sym} (${trades.length})</h3><div class="twrap"><table><thead><tr><th>ID</th><th>Dir</th><th>Grade</th><th>Entry</th><th>Exit</th><th>Net P&L</th><th>R:R</th></tr></thead><tbody>${trades.map(t=>`<tr><td style="color:var(--fg-3);font-size:11px">${t.id}</td><td><span class="badge ${t.direction==='Long'?'b-long':'b-short'}">${t.direction}</span></td><td><span class="badge ${gc(t.grade)}">${t.grade||'—'}</span></td><td style="font-size:12px">${t.entryDate||'—'}</td><td style="font-size:12px">${t.exitDate||'—'}</td><td>${pnlH(t.netPnl)}</td><td style="font-size:12px">${t.rr!=null?f2(t.rr,2)+'R':'—'}</td></tr>`).join('')}</tbody></table></div></div>`;}
 function renderWatchlistCards(){const el=document.getElementById('ch-watchlist');if(!el)return;const syms=[...new Set([...(_trades||[]).map(t=>t.symbol).filter(Boolean),...JSON.parse(localStorage.getItem('tv_watchlist')||'[]')])];if(!syms.length){el.innerHTML='<div style="color:var(--fg-3);font-size:13px">No symbols yet — add trades or use Settings → Watchlist</div>';return;}el.innerHTML=syms.map(s=>{const key=s.toUpperCase().replace('/','');const p=PRICES[key];const priceHtml=p?`<div class="wl-price ${p.chg!=null?(p.chg>=0?'pos':'neg'):''}">${fmtPrice(p.price)}</div>${p.chg!=null?`<div class="wl-chg ${p.chg>=0?'pos':'neg'}">${p.chg>=0?'+':''}${p.chg.toFixed(2)}%</div>`:''}`:`<div class="wl-price" style="color:var(--fg-3)">—</div>`;return`<div class="wl-card" onclick="pickSymbolChart('${s}')" title="Click to load chart"><div class="wl-sym">${s}</div>${priceHtml}</div>`;}).join('');}
@@ -1251,7 +1311,7 @@ function populateModalDropdowns(){const sesSel=document.getElementById('f-ses');
 // ── DATA LAYER ────────────────────────────────────────────
 async function getTrades(){if(_trades)return _trades;const{data,error}=await sb.from('trades').select('*').eq('user_id',CU.id).order('created_at');if(error){console.error(error);return[];}  _trades=data.map(dbToTrade);return _trades;}
 async function getSettings(){if(_settings)return _settings;const{data,error}=await sb.from('settings').select('*').eq('user_id',CU.id).single();if(error||!data){_settings={capital:1000,riskPct:1,dloss:null,wloss:null,mloss:null,maxtrades:null,mgoal:null,wgoal:null,rules:[...DEFAULT_RULES]};return _settings;}_settings=dbToSettings(data);return _settings;}
-async function getDiary(){if(_diary)return _diary;const{data,error}=await sb.from('diary').select('*').eq('user_id',CU.id).order('date',{ascending:false});if(error){console.error(error);return[];}_diary=data;return _diary;}
+async function getDiary(){if(_diary)return _diary;const{data,error}=await sb.from('diary').select('*').eq('user_id',CU.id).order('updated_at',{ascending:false});if(error){console.error('getDiary error:',error);return[];}_diary=data||[];return _diary;}
 function invalidate(){_trades=null;_settings=null;_diary=null;}
 
 // ── AUTH ──────────────────────────────────────────────────
@@ -1277,6 +1337,7 @@ async function initApp(){
     await renderJournal();
     calcIt();qrCalc();renderComp();
     startPriceFeed();
+    updateSessionStat();setInterval(updateSessionStat,60000);
   }catch(e){
     console.error('initApp error:',e);
   }finally{
@@ -1285,6 +1346,8 @@ async function initApp(){
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────
+function getCurrentSession(){const now=new Date();const t=now.getUTCHours()*60+now.getUTCMinutes();if(t<420)return{name:'Asian',color:'var(--info)',sub:'00:00–07:00 UTC'};if(t<720)return{name:'London',color:'#bc8cff',sub:'07:00–12:00 UTC'};if(t<960)return{name:'London/NY Overlap',color:'var(--warn)',sub:'12:00–16:00 UTC'};if(t<1260)return{name:'New York',color:'var(--up)',sub:'16:00–21:00 UTC'};return{name:'Market Closed',color:'var(--fg-3)',sub:'21:00–00:00 UTC'};}
+function updateSessionStat(){const s=getCurrentSession();const el=document.getElementById('tb-session');if(el){el.textContent=s.name;el.style.color=s.color;}}
 async function renderDash(){
   const trades=await getTrades();const s=await getSettings();
   const fin=trades.filter(t=>t.status==='Finished'&&t.netPnl!=null);
@@ -1306,6 +1369,7 @@ async function renderDash(){
   if(s.wloss&&weekPnl<=-Math.abs(s.wloss))alerts.push(`<div class="alert-bar alert-red">Weekly loss limit breached — Week: $${f2(weekPnl)} / Limit: -$${f2(s.wloss)}</div>`);
   document.getElementById('dash-alerts').innerHTML=alerts.join('');
   document.getElementById('dash-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const sess=getCurrentSession();
   document.getElementById('dash-cards').innerHTML=[
     {t:"Today's P&L",v:(todayPnl>=0?'+':'')+'$'+f2(todayPnl),c:todayPnl>=0?'pos':'neg',s:'Closed trades today'},
     {t:"Week P&L",v:(weekPnl>=0?'+':'')+'$'+f2(weekPnl),c:weekPnl>=0?'pos':'neg',s:'This week'},
@@ -1315,8 +1379,10 @@ async function renderDash(){
     {t:"Win Rate",v:f2(wr,1)+'%',c:wr>=50?'pos':'neg',s:wins.length+'W of '+fin.length},
     {t:"Streak",v:str.label,c:str.val>0?'pos':str.val<0?'neg':'neu',s:'Current run'},
     {t:"Max Drawdown",v:f2(mdd.pct,1)+'%',c:mdd.pct>10?'neg':'neu',s:'$'+f2(mdd.amt)},
-  ].map(c=>`<div class="card" style="padding:14px 16px"><div class="ctitle">${c.t}</div><div class="cval ${c.c}">${c.v}</div><div class="csub">${c.s}</div></div>`).join('');
-  document.getElementById('dash-recent').innerHTML=[...trades].reverse().slice(0,6).map(t=>`<tr><td style="color:var(--fg-3);font-size:11px">${t.id}</td><td><strong>${t.symbol}</strong></td><td><span class="badge ${t.direction==='Long'?'b-long':'b-short'}">${t.direction}</span></td><td><span class="badge ${gc(t.grade)}">${t.grade||'—'}</span></td><td>${pnlH(t.netPnl)}</td><td style="color:var(--fg-3);font-size:11px">${t.exitDate||t.entryDate||'—'}</td></tr>`).join('')||'<tr><td colspan="6" style="color:var(--fg-3);text-align:center;padding:12px">No trades yet</td></tr>';
+    {t:"Active Session",v:sess.name,c:'neu',s:sess.sub,vstyle:`color:${sess.color};font-weight:600`},
+  ].map(c=>`<div class="card" style="padding:14px 16px"><div class="ctitle">${c.t}</div><div class="cval ${c.c}" style="${c.vstyle||''}">${c.v}</div><div class="csub">${c.s}</div></div>`).join('');
+  renderDashTrades(trades);
+  const diaryEntries=await getDiary();const latestDiary=diaryEntries[0];const dCard=document.getElementById('dash-diary-card');const dBody=document.getElementById('dash-diary');if(latestDiary){dCard.style.display='';const moods=['😞','😕','😐','🙂','😊'];dBody.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:var(--fg-3);text-transform:uppercase;letter-spacing:.08em">${fmtDiaryDate(latestDiary.date)}</span><span style="font-size:16px">${moods[(latestDiary.mood||3)-1]}</span></div>${latestDiary.plan?`<div style="font-size:12px;color:var(--fg-2);margin-bottom:6px;line-height:1.5"><span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--fg-3)">Plan</span><br>${latestDiary.plan}</div>`:''}${latestDiary.review?`<div style="font-size:12px;color:var(--fg-2);line-height:1.5"><span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--fg-3)">Review</span><br>${latestDiary.review}</div>`:''}<button class="btn btn-sm" style="margin-top:10px;width:100%;justify-content:center" onclick="showTab('diary',document.getElementById('nav-diary'))">Open Diary →</button>`;}else{dCard.style.display='none';}
   refreshOpenPnl();
   const goal=parseFloat(s.mgoal)||0;const gp=goal?Math.min(100,monthPnl/goal*100):0;
   document.getElementById('dash-goal').innerHTML=goal?`<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--fg-3)">Target: $${f2(goal)}</span><span style="color:${pnlC(monthPnl)}">${f2(gp,1)}%</span></div><div class="pbar-wrap"><div class="pbar" style="width:${Math.max(0,gp)}%;background:${pnlC(monthPnl)}"></div></div><div style="font-size:11px;color:var(--fg-3);margin-top:4px">${monthPnl>=0?'+':''}$${f2(monthPnl)} of $${f2(goal)}</div>`:'<div style="font-size:12px;color:var(--fg-3)">Set a monthly goal in Settings</div>';
@@ -1324,8 +1390,10 @@ async function renderDash(){
 }
 
 // ── JOURNAL ───────────────────────────────────────────────
+function renderDashTrades(trades){const fin=trades.filter(t=>t.netPnl!=null);let rows;const titles={recent:'Recent Trades',top:'Top Earners',loss:'Top Losses'};if(_dashView==='top'){rows=[...fin].sort((a,b)=>b.netPnl-a.netPnl).slice(0,5);}else if(_dashView==='loss'){rows=[...fin].sort((a,b)=>a.netPnl-b.netPnl).slice(0,5);}else{rows=[...trades].reverse().slice(0,5);}const titleEl=document.getElementById('dash-recent-title');if(titleEl)titleEl.textContent=titles[_dashView]||'Recent Trades';document.getElementById('dash-recent').innerHTML=rows.map(t=>`<tr><td style="color:var(--fg-3);font-size:11px">${t.id}</td><td><strong>${t.symbol}</strong></td><td><span class="badge ${t.direction==='Long'?'b-long':'b-short'}">${t.direction}</span></td><td><span class="badge ${gc(t.grade)}">${t.grade||'—'}</span></td><td>${pnlH(t.netPnl)}</td><td style="color:var(--fg-3);font-size:11px">${t.exitDate||t.entryDate||'—'}</td></tr>`).join('')||'<tr><td colspan="6" style="color:var(--fg-3);text-align:center;padding:12px">No trades yet</td></tr>';}
+async function setDashView(v){_dashView=v;document.querySelectorAll('[id^="dv-"]').forEach(b=>b.classList.remove('active'));const btn=document.getElementById('dv-'+v);if(btn)btn.classList.add('active');const trades=await getTrades();renderDashTrades(trades);}
 async function renderJournalStats(){const trades=await getTrades();const fin=trades.filter(t=>t.status==='Finished'&&t.netPnl!=null);const wins=fin.filter(t=>t.netPnl>0),losses=fin.filter(t=>t.netPnl<0),be=fin.filter(t=>t.netPnl===0);const totalPnl=fin.reduce((s,t)=>s+t.netPnl,0);const wr=fin.length?wins.length/fin.length*100:0;const exp=calcExp(fin);const aw=wins.length?wins.reduce((s,t)=>s+t.netPnl,0)/wins.length:0;const al=losses.length?losses.reduce((s,t)=>s+t.netPnl,0)/losses.length:0;const pf=Math.abs(al)>0&&losses.length?Math.abs(aw*wins.length/(al*losses.length)):0;document.getElementById('j-stats').innerHTML=[{t:'Net P&L',v:(totalPnl>=0?'+':'')+'$'+f2(totalPnl),c:totalPnl>=0?'pos':'neg',s:fin.length+' finished'},{t:'Win Rate',v:f2(wr,1)+'%',c:wr>=50?'pos':'neg',s:wins.length+'W '+losses.length+'L '+be.length+'BE'},{t:'Expectancy',v:(exp.usd>=0?'+':'')+'$'+f2(exp.usd),c:exp.usd>=0?'pos':'neg',s:f2(exp.r,3)+'R / trade'},{t:'Profit Factor',v:f2(pf,2),c:pf>=1?'pos':'neg',s:'Gross P/L ratio'}].map(c=>`<div class="card" style="padding:14px 16px"><div class="ctitle">${c.t}</div><div class="cval ${c.c}">${c.v}</div><div class="csub">${c.s}</div></div>`).join('');}
-async function renderJournal(){await renderJournalStats();const trades=await getTrades();const search=document.getElementById('j-search').value.toLowerCase();const fs=document.getElementById('j-fs').value,fd=document.getElementById('j-fd').value,fg=document.getElementById('j-fg').value;const eC={Disciplined:'var(--info)',Confident:'var(--up)',FOMO:'var(--warn)',Revenge:'var(--down)',Fear:'#bc8cff',Overconfident:'var(--warn)',Bored:'var(--fg-3)'};let f=[...trades].reverse().filter(t=>{if(fs&&t.status!==fs)return false;if(fd&&t.direction!==fd)return false;if(fg&&t.grade!==fg)return false;if(search&&!`${t.symbol}${t.strategy||''}${t.id}${t.comments||''}`.toLowerCase().includes(search))return false;return true;});document.getElementById('j-count').textContent=f.length+' trade'+(f.length!==1?'s':'');document.getElementById('j-tbody').innerHTML=f.map(t=>`<tr><td style="color:var(--fg-3);font-size:11px">${t.id}</td><td><span class="badge ${t.status==='Open'?'b-open':t.status==='Finished'?'b-fin':'b-d'}">${t.status}</span></td><td><strong>${t.symbol}</strong></td><td><span class="badge ${t.direction==='Long'?'b-long':'b-short'}">${t.direction}</span></td><td><span class="badge ${gc(t.grade)}">${t.grade||'—'}</span></td><td style="color:${eC[t.emotion]||'var(--fg-3)'};font-size:12px">${t.emotion||'—'}</td><td style="text-align:center">${t.rulesFollowed==='Yes'?'✅':t.rulesFollowed==='Partial'?'🟡':'❌'}</td><td style="color:var(--fg-3);font-size:12px">${t.session||'—'}</td><td style="color:var(--fg-3);font-size:12px;max-width:110px;overflow:hidden;text-overflow:ellipsis">${t.strategy||'—'}</td><td>${t.entryDate||'—'}</td><td>${t.quantity!=null?t.quantity:'—'}</td><td class="num">${t.entryPrice?f2(t.entryPrice,3):'—'}</td><td class="num">${t.stopPrice?f2(t.stopPrice,3):'—'}</td><td class="num">${t.exitPrice?f2(t.exitPrice,3):'—'}</td><td class="num ${t.netPnl!=null?t.netPnl>0?'pos':t.netPnl<0?'neg':'neu':'neu'}" style="font-weight:700">${t.netPnl!=null?(t.netPnl>0?'+':'')+'$'+f2(t.netPnl):'—'}</td><td class="num">${t.risk!=null?'$'+f2(t.risk):'—'}</td><td class="num">${t.rr!=null?f2(t.rr,2)+'R':'—'}</td><td><button class="btn btn-sm" onclick="editTrade('${t.id}')">Edit</button> <button class="btn btn-sm btn-danger" onclick="delTrade('${t.id}')">Del</button></td></tr>`).join('')||'<tr><td colspan="18" style="text-align:center;padding:20px;color:var(--fg-3)">No trades found</td></tr>';}
+async function renderJournal(resetPage=false){if(resetPage)_jPage=0;await renderJournalStats();const trades=await getTrades();const search=document.getElementById('j-search').value.toLowerCase();const fs=document.getElementById('j-fs').value,fd=document.getElementById('j-fd').value,fg=document.getElementById('j-fg').value;const eC={Disciplined:'var(--info)',Confident:'var(--up)',FOMO:'var(--warn)',Revenge:'var(--down)',Fear:'#bc8cff',Overconfident:'var(--warn)',Bored:'var(--fg-3)'};let f=[...trades].reverse().filter(t=>{if(fs&&t.status!==fs)return false;if(fd&&t.direction!==fd)return false;if(fg&&t.grade!==fg)return false;if(search&&!`${t.symbol}${t.strategy||''}${t.id}${t.comments||''}`.toLowerCase().includes(search))return false;return true;});const total=f.length;const pages=Math.max(1,Math.ceil(total/J_PER_PAGE));if(_jPage>=pages)_jPage=pages-1;const page=f.slice(_jPage*J_PER_PAGE,(_jPage+1)*J_PER_PAGE);document.getElementById('j-count').textContent=total+' trade'+(total!==1?'s':'')+' · page '+(_jPage+1)+' of '+pages;document.getElementById('j-tbody').innerHTML=page.map(t=>`<tr><td style="color:var(--fg-3);font-size:11px">${t.id}</td><td><span class="badge ${t.status==='Open'?'b-open':t.status==='Finished'?'b-fin':'b-d'}">${t.status}</span></td><td><strong>${t.symbol}</strong></td><td><span class="badge ${t.direction==='Long'?'b-long':'b-short'}">${t.direction}</span></td><td><span class="badge ${gc(t.grade)}">${t.grade||'—'}</span></td><td style="color:${eC[t.emotion]||'var(--fg-3)'};font-size:12px">${t.emotion||'—'}</td><td style="text-align:center">${t.rulesFollowed==='Yes'?'✅':t.rulesFollowed==='Partial'?'🟡':'❌'}</td><td style="color:var(--fg-3);font-size:12px">${t.session||'—'}</td><td style="color:var(--fg-3);font-size:12px;max-width:110px;overflow:hidden;text-overflow:ellipsis">${t.strategy||'—'}</td><td>${t.entryDate||'—'}</td><td>${t.quantity!=null?t.quantity:'—'}</td><td class="num">${t.entryPrice?f2(t.entryPrice,3):'—'}</td><td class="num">${t.stopPrice?f2(t.stopPrice,3):'—'}</td><td class="num">${t.exitPrice?f2(t.exitPrice,3):'—'}</td><td class="num ${t.netPnl!=null?t.netPnl>0?'pos':t.netPnl<0?'neg':'neu':'neu'}" style="font-weight:700">${t.netPnl!=null?(t.netPnl>0?'+':'')+'$'+f2(t.netPnl):'—'}</td><td class="num">${t.risk!=null?'$'+f2(t.risk):'—'}</td><td class="num">${t.rr!=null?f2(t.rr,2)+'R':'—'}</td><td><button class="btn btn-sm" onclick="editTrade('${t.id}')">Edit</button> <button class="btn btn-sm btn-danger" onclick="delTrade('${t.id}')">Del</button></td></tr>`).join('')||'<tr><td colspan="18" style="text-align:center;padding:20px;color:var(--fg-3)">No trades found</td></tr>';const pg=document.getElementById('j-pagination');if(!pg)return;if(pages<=1){pg.innerHTML='';return;}let phtml=`<button ${_jPage===0?'disabled':''} onclick="_jPage--;renderJournal()">‹ Prev</button>`;const start=Math.max(0,_jPage-2),end=Math.min(pages-1,_jPage+2);if(start>0)phtml+=`<button onclick="_jPage=0;renderJournal()">1</button>${start>1?'<span class="page-info">…</span>':''}`;for(let i=start;i<=end;i++)phtml+=`<button class="${i===_jPage?'active':''}" onclick="_jPage=${i};renderJournal()">${i+1}</button>`;if(end<pages-1)phtml+=`${end<pages-2?'<span class="page-info">…</span>':''}<button onclick="_jPage=${pages-1};renderJournal()">${pages}</button>`;phtml+=`<button ${_jPage===pages-1?'disabled':''} onclick="_jPage++;renderJournal()">Next ›</button>`;pg.innerHTML=phtml;}
 function exportCSV(){if(!_trades||!_trades.length){alert('No trades to export.');return;}const h=['ID','Status','Symbol','AssetType','Direction','Grade','Emotion','Rules','Session','Strategy','EntryDate','ExitDate','Qty','EntryPrice','StopPrice','ExitPrice','Commission','NetPnL','Risk','RR','Comments'];const rows=_trades.map(t=>[t.id,t.status,t.symbol,t.assetType,t.direction,t.grade,t.emotion,t.rulesFollowed,t.session,t.strategy,t.entryDate,t.exitDate,t.quantity,t.entryPrice,t.stopPrice,t.exitPrice,t.commission,t.netPnl,t.risk,t.rr,`"${(t.comments||'').replace(/"/g,'""')}"`]);const csv=[h,...rows].map(r=>r.join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`trades_${today()}.csv`;a.click();}
 
 // ── MODAL ─────────────────────────────────────────────────
@@ -1391,16 +1459,78 @@ function btUpdateCharts(totalEq,bySession){const labels=totalEq.map((_,i)=>i);co
 function initBacktester(){_bt={history:[],undone:[],sessionIdx:0};btRecalc();}
 
 // ── DIARY ─────────────────────────────────────────────────
-let diaryDate=today();
-async function renderDiary(){const entries=await getDiary();const moods=['😞','😕','😐','🙂','😊'];document.getElementById('diary-list').innerHTML=entries.map(e=>`<div class="dentry" onclick="openDiary('${e.date}')"><div style="display:flex;justify-content:space-between"><div class="dentry-date">${e.date}</div><div>${moods[(e.mood||3)-1]}</div></div><div class="dentry-preview">${e.plan||e.review||'No notes'}</div></div>`).join('')||'<div style="color:var(--fg-3);font-size:13px;text-align:center;padding:20px">No diary entries yet</div>';if(entries.length)openDiary(entries[0].date);}
-function newDiary(){diaryDate=today();renderDiaryEditor({date:diaryDate});}
-async function openDiary(date){diaryDate=date;const entries=await getDiary();const e=entries.find(x=>x.date===date)||{date};renderDiaryEditor(e);document.querySelectorAll('.dentry').forEach(el=>{const isThis=el.querySelector('.dentry-date')&&el.querySelector('.dentry-date').textContent===date;el.classList.toggle('active',isThis);});}
-function renderDiaryEditor(e){const moods=['😞','😕','😐','🙂','😊'],cur=e.mood||3;document.getElementById('diary-editor').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><strong>${e.date} — Daily Journal</strong><div style="display:flex;gap:6px">${moods.map((m,i)=>`<button class="mood-btn ${cur===i+1?'sel':''}" onclick="setMood(${i+1},this)">${m}</button>`).join('')}</div></div><input type="hidden" id="d-mood" value="${cur}"><div style="display:grid;gap:10px"><div class="fg"><label>Pre-Session Plan</label><textarea id="d-plan" rows="3" style="width:100%;resize:vertical">${e.plan||''}</textarea></div><div class="fg"><label>Market Bias</label><select id="d-bias"><option ${e.bias==='Bullish'?'selected':''}>Bullish</option><option ${e.bias==='Bearish'?'selected':''}>Bearish</option><option ${!e.bias||e.bias==='Neutral'?'selected':''}>Neutral</option></select></div><div class="fg"><label>Post-Session Review</label><textarea id="d-review" rows="3" style="width:100%;resize:vertical">${e.review||''}</textarea></div><div class="fg"><label>What Went Well</label><textarea id="d-well" rows="2" style="width:100%;resize:vertical">${e.went_well||''}</textarea></div><div class="fg"><label>What to Improve</label><textarea id="d-improve" rows="2" style="width:100%;resize:vertical">${e.improve||''}</textarea></div><button class="btn btn-primary" onclick="saveDiary('${e.date}')">Save Entry</button></div>`;}
+let _openDiaryId=null,_savingDiary=false;
+function mkUUID(){if(typeof crypto!=='undefined'&&crypto.randomUUID)return crypto.randomUUID();return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16);});}
+function fmtDiaryDate(d){if(!d)return'—';const clean=d.split('_')[0];if(clean.length<=10)return clean;const dt=new Date(clean);if(isNaN(dt.getTime()))return d;return dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' · '+dt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});}
+async function renderDiary(){
+  const entries=await getDiary();
+  const moods=['😞','😕','😐','🙂','😊'];
+  const listEl=document.getElementById('diary-list');
+  if(!listEl)return;
+  listEl.innerHTML=entries.length?entries.map(e=>`<div class="dentry ${_openDiaryId===e.id?'active':''}" data-id="${e.id}" onclick="openDiary('${e.id}')"><div style="display:flex;justify-content:space-between;align-items:center"><div class="dentry-date">${fmtDiaryDate(e.date)}</div><div style="display:flex;align-items:center;gap:6px"><span>${moods[(e.mood||3)-1]}</span><button class="dentry-del" onclick="event.stopPropagation();deleteDiary('${e.id}')" title="Delete">✕</button></div></div><div class="dentry-preview">${e.plan||e.review||'No notes'}</div></div>`).join(''):'<div style="color:var(--fg-3);font-size:13px;text-align:center;padding:20px">No diary entries yet — click + New Entry</div>';
+  if(entries.length){const target=(_openDiaryId&&entries.find(x=>x.id===_openDiaryId))?_openDiaryId:entries[0].id;await openDiary(target);}
+}
+function newDiary(){_openDiaryId=null;renderDiaryEditor({});document.querySelectorAll('.dentry').forEach(el=>el.classList.remove('active'));}
+async function openDiary(id){_openDiaryId=id;const entries=await getDiary();const e=entries.find(x=>x.id===id)||{};renderDiaryEditor(e);document.querySelectorAll('.dentry').forEach(el=>el.classList.toggle('active',el.dataset.id===id));}
+function renderDiaryEditor(e){
+  const moods=['😞','😕','😐','🙂','😊'],cur=e.mood||3;const isNew=!e.id;
+  const el=document.getElementById('diary-editor');if(!el)return;
+  el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)"><div><div style="font-size:12px;font-weight:700;color:var(--fg);letter-spacing:-.01em">${isNew?'New Entry':fmtDiaryDate(e.date)}</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--fg-3);margin-top:2px">Daily Journal</div></div><div style="display:flex;gap:5px">${moods.map((m,i)=>`<button class="mood-btn ${cur===i+1?'sel':''}" onclick="setMood(${i+1},this)">${m}</button>`).join('')}</div></div><input type="hidden" id="d-entry-id" value="${e.id||''}"><input type="hidden" id="d-mood" value="${cur}"><div style="display:grid;gap:10px"><div class="fg"><label>Pre-Session Plan</label><textarea id="d-plan" rows="3" style="width:100%;resize:vertical;font-family:var(--font-ui)">${e.plan||''}</textarea></div><div class="fg"><label>Market Bias</label><select id="d-bias"><option ${e.bias==='Bullish'?'selected':''}>Bullish</option><option ${e.bias==='Bearish'?'selected':''}>Bearish</option><option ${!e.bias||e.bias==='Neutral'?'selected':''}>Neutral</option></select></div><div class="fg"><label>Post-Session Review</label><textarea id="d-review" rows="3" style="width:100%;resize:vertical;font-family:var(--font-ui)">${e.review||''}</textarea></div><div class="fg"><label>What Went Well</label><textarea id="d-well" rows="2" style="width:100%;resize:vertical;font-family:var(--font-ui)">${e.went_well||''}</textarea></div><div class="fg"><label>What to Improve</label><textarea id="d-improve" rows="2" style="width:100%;resize:vertical;font-family:var(--font-ui)">${e.improve||''}</textarea></div><div style="display:flex;gap:8px">${!isNew?`<button class="btn btn-danger" onclick="deleteDiary('${e.id}')">Delete</button>`:''}<button id="diary-save-btn" class="btn btn-primary" style="flex:1;justify-content:center" onclick="saveDiary()">Save Entry</button></div></div>`;
+}
 function setMood(n,btn){document.getElementById('d-mood').value=n;document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');}
-async function saveDiary(date){const row={user_id:CU.id,date,plan:document.getElementById('d-plan').value,bias:document.getElementById('d-bias').value,review:document.getElementById('d-review').value,went_well:document.getElementById('d-well').value,improve:document.getElementById('d-improve').value,mood:parseInt(document.getElementById('d-mood').value)||3,updated_at:new Date().toISOString()};const{error}=await sb.from('diary').upsert(row,{onConflict:'user_id,date'});if(error){alert('Save failed: '+error.message);return;}_diary=null;toast('Diary saved');await renderDiary();}
+async function saveDiary(){
+  if(_savingDiary)return;
+  _savingDiary=true;
+  const saveBtn=document.getElementById('diary-save-btn');
+  if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='Saving…';}
+  try{
+    const entryId=(document.getElementById('d-entry-id')?.value||'').trim();
+    const ts=new Date().toISOString();
+    const fields={
+      plan:document.getElementById('d-plan')?.value||'',
+      bias:document.getElementById('d-bias')?.value||'Neutral',
+      review:document.getElementById('d-review')?.value||'',
+      went_well:document.getElementById('d-well')?.value||'',
+      improve:document.getElementById('d-improve')?.value||'',
+      mood:parseInt(document.getElementById('d-mood')?.value||'3')||3,
+      updated_at:ts
+    };
+    let error;
+    if(entryId){
+      ({error}=await sb.from('diary').update(fields).eq('id',entryId).eq('user_id',CU.id));
+    }else{
+      const newId=mkUUID();
+      // Use full ISO timestamp as date — unique per entry, works for text/timestamp columns.
+      // If your Supabase `date` column is type `date` (not text), change it to `text` or `timestamptz` in the Supabase table editor.
+      const res=await sb.from('diary').insert({id:newId,user_id:CU.id,date:ts,...fields}).select('id').single();
+      error=res.error;
+      if(!error&&res.data){_openDiaryId=res.data.id;}
+      else if(error&&error.code==='22007'){alert('Your Supabase diary table\'s "date" column must be type "text" or "timestamptz" to support multiple entries.\n\nGo to Supabase → Table Editor → diary → date column → change type to text.');return;}
+    }
+    if(error){alert('Save failed: '+error.message);return;}
+    _diary=null;
+    toast('Diary saved');
+    await renderDiary();
+    await renderDash();
+  }finally{
+    _savingDiary=false;
+    const b=document.getElementById('diary-save-btn');
+    if(b){b.disabled=false;b.textContent='Save Entry';}
+  }
+}
+async function deleteDiary(id){
+  if(!confirm('Delete this diary entry?'))return;
+  const{error}=await sb.from('diary').delete().eq('id',id).eq('user_id',CU.id);
+  if(error){alert('Delete failed: '+error.message);return;}
+  _diary=null;
+  if(_openDiaryId===id){_openDiaryId=null;const el=document.getElementById('diary-editor');if(el)el.innerHTML='<div style="color:var(--fg-3);text-align:center;padding:40px;font-size:13px">Entry deleted — select another or create new</div>';}
+  toast('Entry deleted');
+  await renderDiary();
+  await renderDash();
+}
 
 // ── SETTINGS ──────────────────────────────────────────────
-async function loadSettings(){document.getElementById('s-email').textContent=CU?.email||'';const s=await getSettings();const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null?v:'';};sv('s-cap',s.capital);sv('s-rp',s.riskPct);sv('s-dl',s.dloss);sv('s-wl',s.wloss);sv('s-ml',s.mloss);sv('s-mt',s.maxtrades);sv('s-mg',s.mgoal);sv('s-wg',s.wgoal);renderRules(s.rules||[...DEFAULT_RULES]);loadWatchlistUI();renderSessionsUI();renderStrategiesUI();}
+async function loadSettings(){document.getElementById('s-email').textContent=CU?.email||'';const s=await getSettings();const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null?v:'';};sv('s-cap',s.capital);sv('s-rp',s.riskPct);sv('s-dl',s.dloss);sv('s-wl',s.wloss);sv('s-ml',s.mloss);sv('s-mt',s.maxtrades);sv('s-mg',s.mgoal);sv('s-wg',s.wgoal);renderRules(s.rules||[...DEFAULT_RULES]);loadWatchlistUI();renderSessionsUI();renderStrategiesUI();const themeEl=document.getElementById('s-theme');if(themeEl)themeEl.value=localStorage.getItem('tv_theme')||'dark';const densEl=document.getElementById('s-density');if(densEl)densEl.value=localStorage.getItem('tv_density')||'';}
 function renderRules(rules){document.getElementById('rules-list').innerHTML=rules.map((r,i)=>`<div class="rule-item"><span style="color:var(--fg-3);min-width:20px;font-size:12px">${i+1}.</span><input type="text" id="rule-${i}" value="${r}" style="flex:1"><button class="btn btn-danger btn-sm" onclick="removeRule(${i})">✕</button></div>`).join('');}
 async function addRule(){const s=await getSettings();const rules=s.rules||[...DEFAULT_RULES];rules.push('New trading rule');renderRules(rules);}
 async function removeRule(i){const s=await getSettings();const rules=s.rules||[...DEFAULT_RULES];rules.splice(i,1);renderRules(rules);}
