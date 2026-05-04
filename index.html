@@ -1051,6 +1051,10 @@ tr:hover .row-actions{opacity:1}
         <div class="fg"><label>Exit Date</label><input type="date" id="f-xd"></div>
         <div class="fg"><label>Exit Time</label><input type="time" id="f-xt"></div>
       </div>
+      <div class="fgrid f2" style="gap:10px;margin-top:10px">
+        <div class="fg"><label>Strategy</label><select id="f-strat"></select></div>
+        <div class="fg"><label>Multiplier</label><input type="number" id="f-mult" value="1" step="any"></div>
+      </div>
       <div class="fgrid f4" style="gap:10px;margin-top:10px">
         <div class="fg"><label>Quantity / Lots</label><input type="number" id="f-qty" step="any" oninput="autoCalc()"></div>
         <div class="fg"><label>Entry Price ($)</label><input type="number" id="f-ep" step="any" oninput="autoCalc()"></div>
@@ -1062,10 +1066,6 @@ tr:hover .row-actions{opacity:1}
         <div class="fg"><label>Net P&amp;L ($)</label><input type="number" id="f-pnl" step="any" oninput="autoRR()"></div>
         <div class="fg"><label>Risk ($)</label><input type="number" id="f-risk" step="any" oninput="autoRR()"></div>
         <div class="fg"><label>R:R (auto)</label><input type="number" id="f-rr" step="any" readonly style="opacity:.6"></div>
-      </div>
-      <div class="fgrid f2" style="gap:10px;margin-top:10px">
-        <div class="fg"><label>Strategy</label><select id="f-strat"></select></div>
-        <div class="fg"><label>Multiplier</label><input type="number" id="f-mult" value="1" step="any"></div>
       </div>
       <div class="fg" style="margin-top:10px"><label>Comments / Notes</label><textarea id="f-notes" rows="2" style="width:100%;resize:vertical"></textarea></div>
       <div style="margin-top:10px">
