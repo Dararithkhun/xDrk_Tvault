@@ -1199,6 +1199,18 @@ tr:hover .row-actions{opacity:1}
             </div>
           </div>
           <button class="btn btn-primary" style="margin-bottom:20px" onclick="saveSettings()">Save Settings</button>
+          <div class="cbox" style="margin-bottom:20px">
+            <h3>Screenshot Storage (Cloudflare R2)</h3>
+            <div style="font-size:12px;color:var(--fg-3);margin-bottom:12px">Stored locally in your browser — never sent to the server or committed to Git.</div>
+            <div style="display:grid;gap:10px">
+              <div class="fg"><label>Worker URL</label><input type="url" id="s-r2-worker" placeholder="https://tradevault-upload.xxx.workers.dev/"></div>
+              <div class="fg"><label>Upload Token</label><input type="password" id="s-r2-token" placeholder="Enter token (leave blank to keep existing)"></div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <button class="btn btn-primary" onclick="saveR2Config()">Save Storage Settings</button>
+                <span id="r2-status" style="font-size:11px;color:var(--fg-3)"></span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1357,6 +1369,8 @@ tr:hover .row-actions{opacity:1}
 const SURL='https://fhukthyogmimszbnqvle.supabase.co';
 const SKEY='sb_publishable_T_FHK6ZU71p0PDGRu57n9A_wsBmzF5R';
 const sb=window.supabase.createClient(SURL,SKEY);
+function getR2Config(){return{worker:localStorage.getItem('tv_r2_worker')||'',token:localStorage.getItem('tv_r2_token')||''};}
+function saveR2Config(){const w=document.getElementById('s-r2-worker'),t=document.getElementById('s-r2-token');if(w)localStorage.setItem('tv_r2_worker',w.value.trim());if(t&&t.value.trim())localStorage.setItem('tv_r2_token',t.value.trim());toast('Storage settings saved');}
 
 // ── THEME ──────────────────────────────────────────────────
 function applyTheme(v){
@@ -1702,12 +1716,12 @@ async function renderJournal(resetPage=false){if(resetPage)_jPage=0;await render
 function exportCSV(){if(!_trades||!_trades.length){alert('No trades to export.');return;}const h=['ID','Status','Symbol','AssetType','Direction','Grade','Emotion','Rules','Session','Strategy','EntryDate','ExitDate','Qty','EntryPrice','StopPrice','ExitPrice','Commission','NetPnL','Risk','RR','Comments'];const rows=_trades.map(t=>[t.id,t.status,t.symbol,t.assetType,t.direction,t.grade,t.emotion,t.rulesFollowed,t.session,t.strategy,t.entryDate,t.exitDate,t.quantity,t.entryPrice,t.stopPrice,t.exitPrice,t.commission,t.netPnl,t.risk,t.rr,`"${(t.comments||'').replace(/"/g,'""')}"`]);const csv=[h,...rows].map(r=>r.join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`trades_${today()}.csv`;a.click();}
 
 // ── MODAL ─────────────────────────────────────────────────
-let editingId=null,ssData=null,_formBE=false,_clearSS=false;
+let editingId=null,ssData=null,_ssKey=null,_formBE=false,_clearSS=false;
 function resetBEBtn(){_formBE=false;const btn=document.getElementById('be-btn');const rr=document.getElementById('f-rr');if(btn){btn.style.background='';btn.style.color='';btn.style.borderColor='';}if(rr){rr.value='';rr.style.opacity='.6';rr.style.color='';rr.style.fontWeight='';}}
-function openModal(){populateModalDropdowns();editingId=null;ssData=null;_clearSS=false;resetBEBtn();document.getElementById('modal-title').textContent='Add Trade';setForm({status:'Open',assetType:'Crypto',symbol:'',direction:'Long',grade:'A',emotion:'Disciplined',rulesFollowed:'Yes',session:'London/NY Overlap',entryDate:today(),entryTime:'',exitDate:'',exitTime:'',quantity:'',entryPrice:'',stopPrice:'',exitPrice:'',commission:'',netPnl:'',risk:'',rr:'',strategy:'',multiplier:1,comments:''});document.getElementById('ss-prev').innerHTML='';document.getElementById('auto-hint').textContent='';document.getElementById('trade-modal').classList.add('open');}
+function openModal(){populateModalDropdowns();editingId=null;ssData=null;_ssKey=null;_clearSS=false;resetBEBtn();document.getElementById('modal-title').textContent='Add Trade';setForm({status:'Open',assetType:'Crypto',symbol:'',direction:'Long',grade:'A',emotion:'Disciplined',rulesFollowed:'Yes',session:'London/NY Overlap',entryDate:today(),entryTime:'',exitDate:'',exitTime:'',quantity:'',entryPrice:'',stopPrice:'',exitPrice:'',commission:'',netPnl:'',risk:'',rr:'',strategy:'',multiplier:1,comments:''});document.getElementById('ss-prev').innerHTML='';document.getElementById('auto-hint').textContent='';document.getElementById('trade-modal').classList.add('open');}
 function editTrade(id){populateModalDropdowns();editingId=id;const t=(_trades||[]).find(x=>x.id===id);if(!t)return;resetBEBtn();document.getElementById('modal-title').textContent='Edit — '+id;setForm(t);if(t.be){_formBE=true;const btn=document.getElementById('be-btn');const rr=document.getElementById('f-rr');if(btn){btn.style.background='var(--warn)';btn.style.color='#000';btn.style.borderColor='var(--warn)';}if(rr){rr.value='BE';rr.style.opacity='1';rr.style.color='var(--warn)';rr.style.fontWeight='700';}}_clearSS=false;document.getElementById('ss-prev').innerHTML=t.screenshot?ssPreviewHtml(t.screenshot):'';document.getElementById('trade-modal').classList.add('open');}
 function setForm(t){const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null?v:'';};sv('f-status',t.status);sv('f-asset',t.assetType);sv('f-sym',t.symbol);sv('f-dir',t.direction);sv('f-grade',t.grade);sv('f-emo',t.emotion);sv('f-rules',t.rulesFollowed);sv('f-ses',t.session);sv('f-ed',t.entryDate);sv('f-et',t.entryTime);sv('f-xd',t.exitDate);sv('f-xt',t.exitTime);sv('f-qty',t.quantity);sv('f-ep',t.entryPrice);sv('f-sp',t.stopPrice);sv('f-xp',t.exitPrice);sv('f-comm',t.commission);sv('f-pnl',t.netPnl);sv('f-risk',t.risk);sv('f-rr',t.rr);sv('f-strat',t.strategy);sv('f-mult',t.multiplier);sv('f-notes',t.comments);}
-function closeModal(){document.getElementById('trade-modal').classList.remove('open');ssData=null;_clearSS=false;}
+function closeModal(){document.getElementById('trade-modal').classList.remove('open');ssData=null;_ssKey=null;_clearSS=false;}
 function updatePrefix(){}
 function autoSes(){const t=document.getElementById('f-et').value;if(!t)return;const[h,mn]=t.split(':').map(Number);const localMin=h*60+mn;const offset=getUTCOffsetMin(getUserTZ());const u=((localMin-offset)%1440+1440)%1440;let s='New York';if(u<420)s='Asian';else if(u<540)s='Asian/London Overlap';else if(u<720)s='London';else if(u<960)s='London/NY Overlap';document.getElementById('f-ses').value=s;}
 function toggleBE(){_formBE=!_formBE;const btn=document.getElementById('be-btn');const rr=document.getElementById('f-rr');if(_formBE){btn.style.background='var(--warn)';btn.style.color='#000';btn.style.borderColor='var(--warn)';rr.value='BE';rr.style.opacity='1';rr.style.color='var(--warn)';rr.style.fontWeight='700';}else{btn.style.background='';btn.style.color='';btn.style.borderColor='';rr.value='';rr.style.opacity='.6';rr.style.color='';rr.style.fontWeight='';autoCalc();}}
@@ -1717,8 +1731,31 @@ function openLightbox(src){document.getElementById('img-lightbox-img').src=src;d
 function closeLightbox(){document.getElementById('img-lightbox').classList.remove('open');document.getElementById('img-lightbox-img').src='';}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();});
 function ssPreviewHtml(src){return`<div style="position:relative;display:inline-block"><img src="${src}" class="thumb-img" onclick="openLightbox(this.src)"><button onclick="removeScreenshot()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.65);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:13px;line-height:1;cursor:pointer;display:grid;place-items:center" title="Remove screenshot">✕</button></div>`;}
-function handleSS(inp){const file=inp.files[0];if(!file)return;if(file.size>500000){alert('Image too large. Please use an image under 500KB.');return;}const r=new FileReader();r.onload=e=>{ssData=e.target.result;_clearSS=false;document.getElementById('ss-prev').innerHTML=ssPreviewHtml(ssData);};r.readAsDataURL(file);}
-function removeScreenshot(){ssData=null;_clearSS=true;document.getElementById('ss-prev').innerHTML='';const inp=document.getElementById('f-ss');if(inp)inp.value='';}
+function r2KeyFromUrl(url){if(!url||url.startsWith('data:'))return null;try{return new URL(url).pathname.slice(1);}catch{return null;}}
+async function handleSS(inp){
+  const file=inp.files[0];if(!file)return;
+  if(file.size>5*1024*1024){alert('Image too large. Max 5MB.');return;}
+  const{worker,token}=getR2Config();
+  if(!worker||!token){alert('R2 storage not configured.\nGo to Settings → Storage and enter your Worker URL and token.');return;}
+  const prev=document.getElementById('ss-prev');
+  prev.innerHTML='<div style="color:var(--fg-3);font-size:12px;padding:8px">Uploading…</div>';
+  const fd=new FormData();fd.append('file',file);
+  try{
+    const res=await fetch(worker,{method:'POST',headers:{'X-Token':token},body:fd});
+    if(!res.ok)throw new Error('Upload failed: '+res.status);
+    const{url,key}=await res.json();
+    ssData=url;_ssKey=key;_clearSS=false;
+    prev.innerHTML=ssPreviewHtml(ssData);
+  }catch(e){prev.innerHTML='';alert('Screenshot upload failed. Check your connection and try again.');}
+}
+function removeScreenshot(){
+  const{worker,token}=getR2Config();
+  const keyToDel=_ssKey||r2KeyFromUrl(editingId?(_trades||[]).find(x=>x.id===editingId)?.screenshot:null);
+  if(keyToDel&&worker&&token)fetch(worker,{method:'DELETE',headers:{'X-Token':token,'Content-Type':'application/json'},body:JSON.stringify({key:keyToDel})}).catch(()=>{});
+  ssData=null;_ssKey=null;_clearSS=true;
+  document.getElementById('ss-prev').innerHTML='';
+  const inp=document.getElementById('f-ss');if(inp)inp.value='';
+}
 async function saveTrade(){const btn=document.getElementById('save-btn');btn.disabled=true;btn.textContent='Saving…';const asset=document.getElementById('f-asset').value;const prefix=asset==='Crypto'?'C':'F';const trades=await getTrades();const id=editingId||nextId(prefix);const pnl=parseFloat(document.getElementById('f-pnl').value);const risk=parseFloat(document.getElementById('f-risk').value);const rr=_formBE?null:(!isNaN(pnl)&&!isNaN(risk)&&risk>0?pnl/risk:parseFloat(document.getElementById('f-rr').value)||null);const sym=document.getElementById('f-sym').value.toUpperCase().trim();if(!sym){alert('Please enter a symbol.');btn.disabled=false;btn.textContent='Save Trade';return;}const t={id,status:document.getElementById('f-status').value,symbol:sym,assetType:asset,multiplier:parseFloat(document.getElementById('f-mult').value)||1,direction:document.getElementById('f-dir').value,grade:document.getElementById('f-grade').value,emotion:document.getElementById('f-emo').value,rulesFollowed:document.getElementById('f-rules').value,session:document.getElementById('f-ses').value,strategy:document.getElementById('f-strat').value,entryDate:document.getElementById('f-ed').value||null,entryTime:document.getElementById('f-et').value||null,quantity:parseFloat(document.getElementById('f-qty').value)||null,entryPrice:parseFloat(document.getElementById('f-ep').value)||null,stopPrice:parseFloat(document.getElementById('f-sp').value)||null,exitPrice:parseFloat(document.getElementById('f-xp').value)||null,exitTime:document.getElementById('f-xt').value||null,exitDate:document.getElementById('f-xd').value||null,commission:parseFloat(document.getElementById('f-comm').value)||null,netPnl:isNaN(pnl)?null:pnl,risk:isNaN(risk)?null:risk,rr,comments:(_formBE?'[BE]':'')+(document.getElementById('f-notes').value?(_formBE?' ':'')+document.getElementById('f-notes').value:''),screenshot:_clearSS?null:ssData||(editingId?(_trades||[]).find(x=>x.id===editingId)?.screenshot:null)};const row=tradeToDb(t);const{error}=await sb.from('trades').upsert(row,{onConflict:'user_id,id'});btn.disabled=false;btn.textContent='Save Trade';if(error){alert('Save failed: '+error.message);return;}invalidate();closeModal();toast('Trade saved');await renderJournal();await renderDash();}
 async function delTrade(id){if(!confirm('Delete this trade?'))return;const{error}=await sb.from('trades').delete().eq('user_id',CU.id).eq('id',id);if(error){alert('Delete failed: '+error.message);return;}invalidate();toast('Trade deleted');await renderJournal();await renderDash();}
 
@@ -1842,7 +1879,10 @@ async function deleteDiary(id){
 }
 
 // ── SETTINGS ──────────────────────────────────────────────
-async function loadSettings(){const emailEls=document.querySelectorAll('#s-email,#s-email-sec');emailEls.forEach(el=>{if(el)el.textContent=CU?.email||'';});const unEl=document.getElementById('s-username');if(unEl)unEl.value=CU?.user_metadata?.username||'';const s=await getSettings();const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null?v:'';};sv('s-cap',s.capital);sv('s-rp',s.riskPct);sv('s-dl',s.dloss);sv('s-wl',s.wloss);sv('s-ml',s.mloss);sv('s-mt',s.maxtrades);sv('s-mg',s.mgoal);sv('s-wg',s.wgoal);renderRules(s.rules||[...DEFAULT_RULES]);loadWatchlistUI();renderSessionsUI();renderStrategiesUI();const themeEl=document.getElementById('s-theme');if(themeEl)themeEl.value=localStorage.getItem('tv_theme')||'dark';const densEl=document.getElementById('s-density');if(densEl)densEl.value=localStorage.getItem('tv_density')||'';const tzEl=document.getElementById('s-tz');if(tzEl)tzEl.value=getUserTZ();loadDbStats();}
+async function loadSettings(){const emailEls=document.querySelectorAll('#s-email,#s-email-sec');emailEls.forEach(el=>{if(el)el.textContent=CU?.email||'';});const unEl=document.getElementById('s-username');if(unEl)unEl.value=CU?.user_metadata?.username||'';const s=await getSettings();const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null?v:'';};sv('s-cap',s.capital);sv('s-rp',s.riskPct);sv('s-dl',s.dloss);sv('s-wl',s.wloss);sv('s-ml',s.mloss);sv('s-mt',s.maxtrades);sv('s-mg',s.mgoal);sv('s-wg',s.wgoal);renderRules(s.rules||[...DEFAULT_RULES]);loadWatchlistUI();renderSessionsUI();renderStrategiesUI();const themeEl=document.getElementById('s-theme');if(themeEl)themeEl.value=localStorage.getItem('tv_theme')||'dark';const densEl=document.getElementById('s-density');if(densEl)densEl.value=localStorage.getItem('tv_density')||'';const tzEl=document.getElementById('s-tz');if(tzEl)tzEl.value=getUserTZ();
+const r2w=document.getElementById('s-r2-worker');if(r2w)r2w.value=localStorage.getItem('tv_r2_worker')||'';
+const r2s=document.getElementById('r2-status');if(r2s)r2s.textContent=localStorage.getItem('tv_r2_token')?'Token configured ✓':'Token not set';
+loadDbStats();}
 async function loadDbStats(){
   const btn=document.getElementById('db-refresh-btn');
   const el=document.getElementById('db-stats-content');
