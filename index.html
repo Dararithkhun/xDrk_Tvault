@@ -735,7 +735,8 @@ tr:hover .row-actions{opacity:1}
           <div class="sub" id="dash-date"></div>
         </div>
         <div class="sgrid" id="dash-cards"></div>
-        <div id="dash-clocks" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap"></div>
+        <div id="dash-clocks" style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap"></div>
+        <div class="cbox" id="dash-session-wrap" style="margin-bottom:14px"></div>
         <div class="c2" style="margin-bottom:14px">
           <div style="background:var(--bg-2);border-radius:var(--d-radius);box-shadow:var(--shadow-card);overflow:hidden">
             <div class="card-head">
@@ -1610,7 +1611,45 @@ const WORLD_CLOCKS=[{city:'Tokyo',tz:'Asia/Tokyo',sessStart:0,sessEnd:9,color:'v
 let _clockTimer=null;
 function renderWorldClocks(){const el=document.getElementById('dash-clocks');if(!el)return;const now=new Date();const utcH=now.getUTCHours();el.innerHTML=WORLD_CLOCKS.map(c=>{const time=now.toLocaleTimeString('en-US',{timeZone:c.tz,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});const active=utcH>=c.sessStart&&utcH<c.sessEnd;return`<div style="background:var(--bg-2);border-radius:var(--d-radius);padding:10px 16px;flex:1;min-width:140px;border:1px solid ${active?c.color:'var(--line)'};box-shadow:var(--shadow-card)"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:${active?c.color:'var(--fg-3)'};margin-bottom:4px">${c.city}&nbsp;${active?'● Open':'○ Closed'}</div><div style="font-size:20px;font-weight:700;font-family:var(--font-mono);color:var(--fg)">${time}</div></div>`;}).join('');}
 function updateDashDate(){const el=document.getElementById('dash-date');if(!el)return;const tz=getUserTZ();const now=new Date();const date=now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric',timeZone:tz});const time=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:tz});el.textContent=date+' · '+time;}
-function startClockTick(){if(_clockTimer)clearInterval(_clockTimer);updateDashDate();renderWorldClocks();_clockTimer=setInterval(()=>{updateDashDate();renderWorldClocks();updateSessionStat();},1000);}
+function renderSessionTimeline(){
+  const el=document.getElementById('dash-session-wrap');if(!el)return;
+  const tz=getUserTZ();const now=new Date();
+  const utcMins=now.getUTCHours()*60+now.getUTCMinutes()+now.getUTCSeconds()/60;
+  const nowPct=(utcMins/(24*60)*100).toFixed(4);
+  const SESS=[
+    {name:'Asian',     start:0,  end:7,  color:'#6aa9ff'},
+    {name:'London',    start:7,  end:12, color:'#bc8cff'},
+    {name:'L/NY Ovlp', start:12, end:16, color:'#f5b942'},
+    {name:'New York',  start:16, end:21, color:'#22c993'},
+    {name:'Closed',    start:21, end:24, color:'#606878'},
+  ];
+  const activeIdx=SESS.findIndex(s=>utcMins>=s.start*60&&utcMins<s.end*60);
+  const active=SESS[activeIdx>=0?activeIdx:SESS.length-1];
+  const h2local=h=>{const d=new Date(now);d.setUTCHours(h%24,0,0,0);return d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:tz});};
+  const localNow=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:tz});
+  const tzLabel=tzAbbr(tz);
+  const segs=SESS.map((s,i)=>{
+    const w=(s.end-s.start)/24*100;
+    const mid=((s.start+s.end)/2)/24*100;
+    const isActive=i===activeIdx;
+    return`<div style="position:absolute;left:${s.start/24*100}%;width:${w}%;height:100%;background:${s.color};opacity:${isActive?.32:.09}"></div>`+
+          `<div style="position:absolute;left:${mid}%;transform:translateX(-50%);height:100%;display:flex;align-items:center;pointer-events:none"><span style="font-size:10px;font-weight:${isActive?700:400};color:${isActive?s.color:'var(--fg-4)'};white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,.9)">${s.name}</span></div>`;
+  }).join('');
+  const ticks=[0,7,12,16,21,24].map(h=>{
+    const pct=h/24*100;
+    return`<div style="position:absolute;left:${pct}%;transform:translateX(-50%);text-align:center"><div style="width:1px;height:5px;background:var(--line);margin:0 auto 2px"></div><div style="font-size:9px;color:var(--fg-4);white-space:nowrap">${h2local(h)}</div></div>`;
+  }).join('');
+  const legend=SESS.map(s=>`<div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:2px;background:${s.color};opacity:.75"></div><span style="font-size:10px;color:var(--fg-3)">${s.name}</span></div>`).join('');
+  el.innerHTML=
+    `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px">`+
+      `<div><span style="font-size:13px;font-weight:700;color:${active.color}">${active.name}</span><span style="font-size:11px;color:var(--fg-3);margin-left:7px">currently active</span></div>`+
+      `<div style="text-align:right"><div style="font-size:13px;font-weight:700;font-family:var(--font-mono);color:var(--fg)">${localNow}</div><div style="font-size:10px;color:var(--fg-4)">${tzLabel}&nbsp;·&nbsp;${tz}</div></div>`+
+    `</div>`+
+    `<div style="position:relative;height:32px;border-radius:5px;overflow:hidden;border:1px solid var(--line)">${segs}<div style="position:absolute;top:0;left:${nowPct}%;width:2px;height:100%;background:rgba(255,255,255,.88);box-shadow:0 0 6px rgba(255,255,255,.45);z-index:10"></div></div>`+
+    `<div style="position:relative;height:26px;margin-top:2px">${ticks}</div>`+
+    `<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px">${legend}</div>`;
+}
+function startClockTick(){if(_clockTimer)clearInterval(_clockTimer);updateDashDate();renderWorldClocks();renderSessionTimeline();_clockTimer=setInterval(()=>{updateDashDate();renderWorldClocks();renderSessionTimeline();updateSessionStat();},1000);}
 async function renderDash(){
   const trades=await getTrades();const s=await getSettings();
   const fin=trades.filter(t=>t.status==='Finished'&&t.netPnl!=null);
