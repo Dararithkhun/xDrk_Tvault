@@ -1025,34 +1025,17 @@ tr:hover .row-actions{opacity:1}
       <div id="tab-diary" class="tab" style="display:none">
         <div class="title-block">
           <h1>Trading Diary</h1>
-          <div class="sub">Trade feed, reflections &amp; daily mindset log</div>
+          <div class="sub">Unified feed of trades &amp; daily journal entries</div>
         </div>
-        <div class="seg" style="margin-bottom:14px">
-          <button id="diary-tab-feed" class="active" onclick="switchDiaryView('feed')">Trade Feed</button>
-          <button id="diary-tab-journal" onclick="switchDiaryView('journal')">Daily Journal</button>
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+          <input type="text" id="feed-search" placeholder="Search…" oninput="renderFeed()" style="flex:1;min-width:140px">
+          <select id="feed-filter-type" onchange="renderFeed()"><option value="">All</option><option value="trade">Trades</option><option value="journal">Journal</option></select>
+          <select id="feed-filter-status" onchange="renderFeed()"><option value="">All Status</option><option>Open</option><option>Finished</option></select>
+          <select id="feed-filter-dir" onchange="renderFeed()"><option value="">All Direction</option><option>Long</option><option>Short</option></select>
+          <button class="btn btn-primary" onclick="toggleNewJournal()">+ New Journal</button>
         </div>
-        <!-- FEED VIEW -->
-        <div id="diary-view-feed">
-          <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-            <input type="text" id="feed-search" placeholder="Search trades…" oninput="renderTradeFeed()" style="flex:1;min-width:160px">
-            <select id="feed-filter-status" onchange="renderTradeFeed()"><option value="">All Status</option><option>Open</option><option>Finished</option></select>
-            <select id="feed-filter-dir" onchange="renderTradeFeed()"><option value="">All Direction</option><option>Long</option><option>Short</option></select>
-          </div>
-          <div id="trade-feed"></div>
-        </div>
-        <!-- JOURNAL VIEW (existing) -->
-        <div id="diary-view-journal" style="display:none">
-          <div class="diary-layout">
-            <div>
-              <button class="btn btn-primary" style="width:100%;margin-bottom:10px;justify-content:center" onclick="newDiary()">+ New Entry</button>
-              <div class="diary-search-wrap">
-                <input type="text" placeholder="Search entries…" oninput="filterDiary(this.value)">
-              </div>
-              <div class="diary-list" id="diary-list"></div>
-            </div>
-            <div class="cbox" id="diary-editor"><div style="color:var(--fg-3);text-align:center;padding:40px">Select or create a diary entry</div></div>
-          </div>
-        </div>
+        <div id="feed-journal-form" class="cbox" style="display:none;margin-bottom:16px"></div>
+        <div id="trade-feed"></div>
       </div>
 
       <!-- BACKTESTER -->
@@ -1510,7 +1493,7 @@ async function showTab(name,btn){
     else if(name==='stats'){await renderStats();}
     else if(name==='calendar'){await renderCalendar();}
     else if(name==='comp'){renderComp();}
-    else if(name==='diary'){switchDiaryView('feed');}
+    else if(name==='diary'){renderFeed();}
     else if(name==='settings'){await loadSettings();}
     else if(name==='calc'){calcIt();qrCalc();}
     else if(name==='chart'){renderWatchlistCards();if(document.getElementById('ch-sym')?.value)loadChart();}
@@ -1928,7 +1911,7 @@ async function saveDiary(){
     if(error){alert('Save failed: '+error.message);return;}
     _diary=null;
     toast('Diary saved');
-    await renderDiary();
+    closeDiaryForm();await renderFeed();
     await renderDash();
   }finally{
     _savingDiary=false;
@@ -1941,9 +1924,9 @@ async function deleteDiary(id){
   const{error}=await sb.from('diary').delete().eq('id',id).eq('user_id',CU.id);
   if(error){alert('Delete failed: '+error.message);return;}
   _diary=null;
-  if(_openDiaryId===id){_openDiaryId=null;const el=document.getElementById('diary-editor');if(el)el.innerHTML='<div style="color:var(--fg-3);text-align:center;padding:40px;font-size:13px">Entry deleted — select another or create new</div>';}
+  if(_openDiaryId===id){_openDiaryId=null;closeDiaryForm();}
   toast('Entry deleted');
-  await renderDiary();
+  await renderFeed();
   await renderDash();
 }
 
@@ -2464,12 +2447,8 @@ async function filterDiary(search){
   listEl.innerHTML=filtered.length?filtered.map(e=>`<div class="dentry ${_openDiaryId===e.id?'active':''}" data-id="${e.id}" onclick="openDiary('${e.id}')"><div style="display:flex;justify-content:space-between;align-items:center"><div class="dentry-date">${fmtDiaryDate(e.date)}</div><div style="display:flex;align-items:center;gap:6px"><span>${moods[(e.mood||3)-1]}</span><button class="dentry-del" onclick="event.stopPropagation();deleteDiary('${e.id}')" title="Delete">✕</button></div></div><div class="dentry-preview">${e.plan||e.review||'No notes'}</div></div>`).join(''):'<div style="color:var(--fg-3);font-size:13px;text-align:center;padding:20px">No entries match</div>';
 }
 
-// Override renderDiaryEditor to add template buttons
-function renderDiaryEditor(e){
-  const moods=['😞','😕','😐','🙂','😊'],cur=e.mood||3;const isNew=!e.id;
-  const el=document.getElementById('diary-editor');if(!el)return;
-  el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)"><div><div style="font-size:12px;font-weight:700;color:var(--fg);letter-spacing:-.01em">${isNew?'New Entry':fmtDiaryDate(e.date)}</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--fg-3);margin-top:2px">Daily Journal</div></div><div style="display:flex;gap:5px">${moods.map((m,i)=>`<button class="mood-btn ${cur===i+1?'sel':''}" onclick="setMood(${i+1},this)">${m}</button>`).join('')}</div></div><div style="display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap"><span style="font-size:11px;color:var(--fg-3);line-height:30px">Templates:</span><button class="btn btn-sm" onclick="applyWeeklyTemplate()">Weekly Review</button><button class="btn btn-sm" onclick="applyMonthlyTemplate()">Monthly Review</button></div><input type="hidden" id="d-entry-id" value="${e.id||''}"><input type="hidden" id="d-mood" value="${cur}"><div style="display:grid;gap:10px"><div class="fg"><label>Pre-Session Plan</label><textarea id="d-plan" rows="3" style="width:100%;resize:vertical;font-family:var(--font-ui)">${e.plan||''}</textarea></div><div class="fg"><label>Market Bias</label><select id="d-bias"><option ${e.bias==='Bullish'?'selected':''}>Bullish</option><option ${e.bias==='Bearish'?'selected':''}>Bearish</option><option ${!e.bias||e.bias==='Neutral'?'selected':''}>Neutral</option></select></div><div class="fg"><label>Post-Session Review</label><textarea id="d-review" rows="3" style="width:100%;resize:vertical;font-family:var(--font-ui)">${e.review||''}</textarea></div><div class="fg"><label>What Went Well</label><textarea id="d-well" rows="2" style="width:100%;resize:vertical;font-family:var(--font-ui)">${e.went_well||''}</textarea></div><div class="fg"><label>What to Improve</label><textarea id="d-improve" rows="2" style="width:100%;resize:vertical;font-family:var(--font-ui)">${e.improve||''}</textarea></div><div style="display:flex;gap:8px">${!isNew?`<button class="btn btn-danger" onclick="deleteDiary('${e.id}')">Delete</button>`:''}<button id="diary-save-btn" class="btn btn-primary" style="flex:1;justify-content:center" onclick="saveDiary()">Save Entry</button></div></div>`;
-}
+// renderDiaryEditor now delegates to inline feed form
+function renderDiaryEditor(e){openDiaryFormForEdit(e.id);}
 
 function applyWeeklyTemplate(){
   const set=(id,v)=>{const el=document.getElementById(id);if(el&&!el.value)el.value=v;};
@@ -2939,13 +2918,59 @@ function closeViewModal(){document.getElementById('trade-view-modal').classList.
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLightbox();closeViewModal();}});
 
 // ── TRADE FEED (Facebook-style diary) ─────────────────────────
-function switchDiaryView(view){
-  document.getElementById('diary-view-feed').style.display=view==='feed'?'':'none';
-  document.getElementById('diary-view-journal').style.display=view==='journal'?'':'none';
-  document.getElementById('diary-tab-feed').classList.toggle('active',view==='feed');
-  document.getElementById('diary-tab-journal').classList.toggle('active',view==='journal');
-  if(view==='feed')renderTradeFeed();
-  else{renderDiaryList();if(!_openDiaryId){const el=document.getElementById('diary-editor');if(el)el.innerHTML='<div style="color:var(--fg-3);text-align:center;padding:40px">Select or create a diary entry</div>';}}
+function toggleNewJournal(){
+  const form=document.getElementById('feed-journal-form');if(!form)return;
+  if(form.style.display==='none'||!form.style.display){
+    _openDiaryId=null;
+    renderInlineJournalForm({});
+    form.style.display='';
+    form.scrollIntoView({behavior:'smooth',block:'start'});
+  }else{
+    form.style.display='none';
+  }
+}
+function closeDiaryForm(){
+  const form=document.getElementById('feed-journal-form');
+  if(form)form.style.display='none';
+}
+function openDiaryFormForEdit(id){
+  if(!id)return;
+  const entries=_diary||[];
+  const e=entries.find(x=>x.id===id)||{id};
+  _openDiaryId=id;
+  const form=document.getElementById('feed-journal-form');if(!form)return;
+  renderInlineJournalForm(e);
+  form.style.display='';
+  form.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function renderInlineJournalForm(e){
+  const moods=['😞','😕','😐','🙂','😊'],cur=e.mood||3;const isNew=!e.id;
+  const form=document.getElementById('feed-journal-form');if(!form)return;
+  form.innerHTML=
+    `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line)">`+
+      `<strong style="font-size:13px">${isNew?'New Journal Entry':fmtDiaryDate(e.date)}</strong>`+
+      `<div style="display:flex;align-items:center;gap:5px">`+
+        moods.map((m,i)=>`<button class="mood-btn ${cur===i+1?'sel':''}" onclick="setMood(${i+1},this)">${m}</button>`).join('')+
+        `<button class="btn btn-sm" onclick="closeDiaryForm()" style="margin-left:6px">Cancel</button>`+
+      `</div>`+
+    `</div>`+
+    `<div style="display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap">`+
+      `<span style="font-size:11px;color:var(--fg-3);line-height:30px">Templates:</span>`+
+      `<button class="btn btn-sm" onclick="applyWeeklyTemplate()">Weekly Review</button>`+
+      `<button class="btn btn-sm" onclick="applyMonthlyTemplate()">Monthly Review</button>`+
+    `</div>`+
+    `<input type="hidden" id="d-entry-id" value="${e.id||''}">`+
+    `<input type="hidden" id="d-mood" value="${cur}">`+
+    `<div style="display:grid;gap:10px">`+
+      `<div class="fg"><label>Pre-Session Plan</label><textarea id="d-plan" rows="3" style="width:100%;resize:vertical;font-family:var(--font-ui)">${e.plan||''}</textarea></div>`+
+      `<div class="fg"><label>Market Bias</label><select id="d-bias"><option ${e.bias==='Bullish'?'selected':''}>Bullish</option><option ${e.bias==='Bearish'?'selected':''}>Bearish</option><option ${!e.bias||e.bias==='Neutral'?'selected':''}>Neutral</option></select></div>`+
+      `<div class="fg"><label>Post-Session Review</label><textarea id="d-review" rows="3" style="width:100%;resize:vertical;font-family:var(--font-ui)">${e.review||''}</textarea></div>`+
+      `<div class="fg"><label>What Went Well</label><textarea id="d-well" rows="2" style="width:100%;resize:vertical;font-family:var(--font-ui)">${e.went_well||''}</textarea></div>`+
+      `<div class="fg"><label>What to Improve</label><textarea id="d-improve" rows="2" style="width:100%;resize:vertical;font-family:var(--font-ui)">${e.improve||''}</textarea></div>`+
+      `<div style="display:flex;gap:8px">`+
+        `<button id="diary-save-btn" class="btn btn-primary" style="flex:1;justify-content:center" onclick="saveDiary()">Save Entry</button>`+
+      `</div>`+
+    `</div>`;
 }
 function feedPhotosClass(n){return'feed-photos '+(n===1?'fp1':n===2?'fp2':n===3?'fp3':'fp4');}
 function feedPhotosInner(photos){
@@ -2958,21 +2983,65 @@ function feedPhotosInner(photos){
     `</div>`;
   }).join('');
 }
-async function renderTradeFeed(){
+function renderJournalCard(e){
+  const moods=['😞','😕','😐','🙂','😊'];
+  const mood=moods[(e.mood||3)-1];
+  const biasColor=e.bias==='Bullish'?'var(--up)':e.bias==='Bearish'?'var(--down)':'var(--fg-3)';
+  const fields=[
+    e.plan?{label:'Pre-Session Plan',val:e.plan}:null,
+    e.review?{label:'Post-Session Review',val:e.review}:null,
+    e.went_well?{label:'What Went Well',val:e.went_well}:null,
+    e.improve?{label:'What to Improve',val:e.improve}:null,
+  ].filter(Boolean);
+  return`<div class="feed-post" id="jp-${e.id}">`+
+    `<div class="feed-post-hd">`+
+      `<div>`+
+        `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">`+
+          `<span style="font-size:15px">📓</span>`+
+          `<strong style="font-size:14px">Journal Entry</strong>`+
+          `<span class="badge b-neutral">Journal</span>`+
+          (e.bias?`<span style="font-size:11px;font-weight:600;color:${biasColor}">${e.bias}</span>`:'')+
+        `</div>`+
+        `<div style="font-size:11px;color:var(--fg-4);margin-top:3px">${fmtDiaryDate(e.date)} · ${mood}</div>`+
+      `</div>`+
+      `<div style="display:flex;gap:5px">`+
+        `<button class="btn btn-sm" onclick="openDiaryFormForEdit('${e.id}')">Edit</button>`+
+        `<button class="btn btn-sm btn-danger" onclick="deleteDiary('${e.id}')">Delete</button>`+
+      `</div>`+
+    `</div>`+
+    `<div class="feed-post-body">`+
+      (fields.length?fields.map(f=>`<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--fg-3);margin-bottom:3px">${f.label}</div><div style="font-size:13px;color:var(--fg-2);line-height:1.6;white-space:pre-wrap">${f.val}</div></div>`).join(''):`<div style="color:var(--fg-3);font-size:13px">No notes</div>`)+
+    `</div>`+
+  `</div>`;
+}
+async function renderFeed(){
   const el=document.getElementById('trade-feed');if(!el)return;
-  const trades=await getTrades();
+  const [trades,entries]=await Promise.all([getTrades(),getDiary()]);
   const search=(document.getElementById('feed-search')?.value||'').toLowerCase();
+  const fType=document.getElementById('feed-filter-type')?.value||'';
   const fStatus=document.getElementById('feed-filter-status')?.value||'';
   const fDir=document.getElementById('feed-filter-dir')?.value||'';
-  const filtered=[...trades].reverse().filter(t=>{
-    if(fStatus&&t.status!==fStatus)return false;
-    if(fDir&&t.direction!==fDir)return false;
-    if(search&&!`${t.symbol}${t.id}${t.comments||''}${t.strategy||''}`.toLowerCase().includes(search))return false;
-    return true;
-  });
-  if(!filtered.length){el.innerHTML='<div style="color:var(--fg-3);text-align:center;padding:40px;font-size:13px">No trades found</div>';return;}
+  const items=[];
+  if(!fType||fType==='trade'){
+    for(const t of [...trades].reverse()){
+      if(fStatus&&t.status!==fStatus)continue;
+      if(fDir&&t.direction!==fDir)continue;
+      if(search&&!`${t.symbol}${t.id}${t.comments||''}${t.strategy||''}`.toLowerCase().includes(search))continue;
+      items.push({type:'trade',date:t.entryDate?t.entryDate+'T'+(t.entryTime||'00:00'):'',data:t});
+    }
+  }
+  if(!fType||fType==='journal'){
+    for(const e of entries){
+      if(search&&!`${e.plan||''}${e.review||''}${e.went_well||''}${e.improve||''}`.toLowerCase().includes(search))continue;
+      items.push({type:'journal',date:e.date||'',data:e});
+    }
+  }
+  items.sort((a,b)=>b.date.localeCompare(a.date));
+  if(!items.length){el.innerHTML='<div style="color:var(--fg-3);text-align:center;padding:40px;font-size:13px">No entries found</div>';return;}
   const gc2=g=>({A:'b-long','A+':'b-long',B:'b-neutral',C:'b-neutral',D:'b-short'}[g]||'b-neutral');
-  el.innerHTML=filtered.map(t=>{
+  el.innerHTML=items.map(item=>{
+    if(item.type==='journal')return renderJournalCard(item.data);
+    const t=item.data;
     const pnlColor=t.netPnl==null?'var(--fg)':t.netPnl>0?'var(--up)':t.netPnl<0?'var(--down)':'var(--fg)';
     const photos=t.screenshots||[];
     const photosHtml=photos.length?`<div class="${feedPhotosClass(photos.length)}">${feedPhotosInner(photos)}</div>`:'';
