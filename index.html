@@ -41,7 +41,7 @@
 }
 [data-density="comfy"]  { --d-row:38px; --d-cell-y:11px; --d-card-pad:20px; }
 [data-density="compact"]{ --d-row:28px; --d-cell-y:6px; --d-cell-x:10px; --d-card-pad:12px; }
-[data-theme="midnight"] { --bg-0:#050814; --bg-1:#08102a; --bg-2:#0d1733; --bg-3:#131e3e; --bg-4:#1a2752; --line:#1a2752; --line-2:#243463; }
+[data-theme="midnight"] { --bg-0:#050814; --bg-1:#08102a; --bg-2:#0d1733; --bg-3:#131e3e; --bg-4:#1a2752; --line:#1a2752; --line-2:#243463; --fg-3:#8090b8; --fg-4:#5e6d93; }
 [data-theme="paper"] {
   --bg-0:#f4f5f7; --bg-1:#ffffff; --bg-2:#ffffff; --bg-3:#f7f8fa; --bg-4:#eef0f4; --bg-5:#e6e8ed;
   --line:#e2e5eb; --line-2:#cdd2dc;
@@ -53,8 +53,11 @@
 [data-theme="paper"] .b-ap{background:#ede6ff;color:#5a1fa0}
 [data-theme="paper"] .b-a{background:#deeaff;color:#1a4fad;border-color:#a8c4f0}
 [data-theme="paper"] .b-open{background:#deeaff;color:#1a4fad}
+[data-theme="paper"] .b-c{background:#fff2d4;color:#7a5000;border-color:#e8d080}
 [data-theme="paper"] .chip-info{background:#deeaff;color:#1a4fad;border-color:#a8c4f0}
 [data-theme="paper"] .grade.b,[data-theme="paper"] .gc-b{background:#fef3d0;color:#7a5000;border-color:#e8d080}
+[data-theme="paper"] .qs-g{background:#fff2d4;color:#7a5000;border-color:#e8d080}
+[data-theme="paper"] .b-neutral{background:#e2e6f0;color:#3a4868}
 [data-theme="paper"] .b-fin{background:var(--bg-4);color:var(--fg-2)}
 *{box-sizing:border-box;margin:0;padding:0}
 html{height:-webkit-fill-available}
@@ -221,7 +224,7 @@ tr:hover .row-actions{opacity:1}
 
 /* ── BADGES (legacy) ── */
 .badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700}
-.b-ap{background:#2a1a4a;color:#bc8cff}.b-a{background:#1a2a4a;color:var(--info)}.b-b{background:var(--up-dim);color:var(--up)}.b-c{background:#2a2010;color:var(--warn)}.b-d{background:var(--down-dim);color:var(--down)}.b-long{background:var(--up-dim);color:var(--up)}.b-short{background:var(--down-dim);color:var(--down)}.b-open{background:oklch(0.22 0.05 250);color:var(--info)}.b-fin{background:var(--bg-4);color:var(--fg-3)}
+.b-ap{background:#2a1a4a;color:#bc8cff}.b-a{background:#1a2a4a;color:var(--info)}.b-b{background:var(--up-dim);color:var(--up)}.b-c{background:#2a2010;color:var(--warn)}.b-d{background:var(--down-dim);color:var(--down)}.b-long{background:var(--up-dim);color:var(--up)}.b-short{background:var(--down-dim);color:var(--down)}.b-open{background:oklch(0.22 0.05 250);color:var(--info)}.b-fin{background:var(--bg-4);color:var(--fg-3)}.b-neutral{background:var(--bg-4);color:var(--fg-2)}
 
 /* ── GRADE ── */
 .grade{display:inline-grid;place-items:center;width:24px;height:22px;border-radius:5px;font-family:var(--font-mono);font-size:11px;font-weight:700;background:var(--bg-3);border:1px solid var(--line)}
@@ -1670,6 +1673,7 @@ function renderSessionTimeline(){
   const tz=getUserTZ();const now=new Date();
   const utcMins=now.getUTCHours()*60+now.getUTCMinutes()+now.getUTCSeconds()/60;
   const nowPct=(utcMins/(24*60)*100).toFixed(4);
+  const isPaper=document.documentElement.getAttribute('data-theme')==='paper';
   const SESS=[
     {name:'Asian',     start:0,  end:7,  color:'#6aa9ff'},
     {name:'London',    start:7,  end:12, color:'#bc8cff'},
@@ -1682,16 +1686,20 @@ function renderSessionTimeline(){
   const h2local=h=>{const d=new Date(now);d.setUTCHours(h%24,0,0,0);return d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:tz});};
   const localNow=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:tz});
   const tzLabel=tzAbbr(tz);
+  const needleColor=isPaper?'rgba(0,0,0,.75)':'rgba(255,255,255,.88)';
+  const needleShadow=isPaper?'0 0 4px rgba(0,0,0,.25)':'0 0 6px rgba(255,255,255,.45)';
+  const opActive=isPaper?.55:.32;
+  const opIdle=isPaper?.18:.09;
   const segs=SESS.map((s,i)=>{
     const w=(s.end-s.start)/24*100;
     const mid=((s.start+s.end)/2)/24*100;
     const isActive=i===activeIdx;
-    return`<div style="position:absolute;left:${s.start/24*100}%;width:${w}%;height:100%;background:${s.color};opacity:${isActive?.32:.09}"></div>`+
-          `<div style="position:absolute;left:${mid}%;transform:translateX(-50%);height:100%;display:flex;align-items:center;pointer-events:none"><span style="font-size:10px;font-weight:${isActive?700:400};color:${isActive?s.color:'var(--fg-4)'};white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,.9)">${s.name}</span></div>`;
+    return`<div style="position:absolute;left:${s.start/24*100}%;width:${w}%;height:100%;background:${s.color};opacity:${isActive?opActive:opIdle}"></div>`+
+          `<div style="position:absolute;left:${mid}%;transform:translateX(-50%);height:100%;display:flex;align-items:center;pointer-events:none"><span style="font-size:10px;font-weight:${isActive?700:400};color:${isActive?s.color:'var(--fg-4)'};white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,.7)">${s.name}</span></div>`;
   }).join('');
   const ticks=[0,7,12,16,21,24].map(h=>{
     const pct=h/24*100;
-    return`<div style="position:absolute;left:${pct}%;transform:translateX(-50%);text-align:center"><div style="width:1px;height:5px;background:var(--line);margin:0 auto 2px"></div><div style="font-size:9px;color:var(--fg-4);white-space:nowrap">${h2local(h)}</div></div>`;
+    return`<div style="position:absolute;left:${pct}%;transform:translateX(-50%);text-align:center"><div style="width:1px;height:5px;background:var(--line-2);margin:0 auto 2px"></div><div style="font-size:9px;color:var(--fg-3);white-space:nowrap">${h2local(h)}</div></div>`;
   }).join('');
   const legend=SESS.map(s=>`<div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:2px;background:${s.color};opacity:.75"></div><span style="font-size:10px;color:var(--fg-3)">${s.name}</span></div>`).join('');
   el.innerHTML=
@@ -1699,7 +1707,7 @@ function renderSessionTimeline(){
       `<div><span style="font-size:13px;font-weight:700;color:${active.color}">${active.name}</span><span style="font-size:11px;color:var(--fg-3);margin-left:7px">currently active</span></div>`+
       `<div style="text-align:right"><div style="font-size:13px;font-weight:700;font-family:var(--font-mono);color:var(--fg)">${localNow}</div><div style="font-size:10px;color:var(--fg-4)">${tzLabel}&nbsp;·&nbsp;${tz}</div></div>`+
     `</div>`+
-    `<div style="position:relative;height:32px;border-radius:5px;overflow:hidden;border:1px solid var(--line)">${segs}<div style="position:absolute;top:0;left:${nowPct}%;width:2px;height:100%;background:rgba(255,255,255,.88);box-shadow:0 0 6px rgba(255,255,255,.45);z-index:10"></div></div>`+
+    `<div style="position:relative;height:32px;border-radius:5px;overflow:hidden;border:1px solid var(--line)">${segs}<div style="position:absolute;top:0;left:${nowPct}%;width:2px;height:100%;background:${needleColor};box-shadow:${needleShadow};z-index:10"></div></div>`+
     `<div style="position:relative;height:26px;margin-top:2px">${ticks}</div>`+
     `<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px">${legend}</div>`;
 }
@@ -1822,7 +1830,15 @@ async function showCalDay(ds){const trades=(await getTrades()).filter(t=>(t.exit
 // ── STATISTICS ────────────────────────────────────────────
 let _charts={};
 function dChart(id){if(_charts[id]){_charts[id].destroy();delete _charts[id];}}
-function mkChart(id,type,data,opts={}){dChart(id);const ctx=document.getElementById(id);if(!ctx)return;_charts[id]=new Chart(ctx.getContext('2d'),{type,data,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'var(--fg-3)'},grid:{display:false}},y:{ticks:{color:'var(--fg-3)'},grid:{color:'var(--line)'}}},...opts}});return _charts[id];}
+function mkChart(id,type,data,opts={}){
+  dChart(id);const ctx=document.getElementById(id);if(!ctx)return;
+  const th=document.documentElement.getAttribute('data-theme')||'dark';
+  const isPaper=th==='paper';const isMid=th==='midnight';
+  const tickC=isPaper?'#525c6e':isMid?'#8090b8':'#6c7689';
+  const gridC=isPaper?'#e2e5eb':isMid?'#1a2752':'#1e2532';
+  _charts[id]=new Chart(ctx.getContext('2d'),{type,data,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tickC},grid:{display:false}},y:{ticks:{color:tickC},grid:{color:gridC}}},...opts}});
+  return _charts[id];
+}
 function setRange(r){const tz=getUserTZ();const{y,m}=getTZParts(tz);if(r==='month'){document.getElementById('st-s').value=localDateStr(new Date(y,m,1,12));document.getElementById('st-e').value=localDateStr(new Date(y,m+1,0,12));}else if(r==='year'){document.getElementById('st-s').value=`${y}-01-01`;document.getElementById('st-e').value=`${y}-12-31`;}else{document.getElementById('st-s').value='';document.getElementById('st-e').value='';}renderStats();}
 async function renderStats(){const st=document.getElementById('st-s').value,en=document.getElementById('st-e').value;const all=await getTrades();const ft=filterT(all,st||null,en||null).filter(t=>t.status!=='Cancelled');const fin=ft.filter(t=>t.status==='Finished'&&t.netPnl!=null);const beTrades=fin.filter(t=>t.be),dec=fin.filter(t=>!t.be);const wins=dec.filter(t=>t.netPnl>0),losses=dec.filter(t=>t.netPnl<0),be=[...beTrades,...dec.filter(t=>t.netPnl===0)];const totalPnl=fin.reduce((s,t)=>s+t.netPnl,0);const wr=dec.length?wins.length/dec.length*100:0;const aw=wins.length?wins.reduce((s,t)=>s+t.netPnl,0)/wins.length:0;const al=losses.length?losses.reduce((s,t)=>s+t.netPnl,0)/losses.length:0;const pf=Math.abs(al)>0&&losses.length?Math.abs(aw*wins.length/(al*losses.length)):0;const exp=calcExp(fin);const sorted=[...fin].sort((a,b)=>(a.exitDate||a.entryDate||'').localeCompare(b.exitDate||b.entryDate||''));const dpm={};sorted.forEach(t=>{const d=t.exitDate||t.entryDate||'';dpm[d]=(dpm[d]||0)+t.netPnl;});const dp=Object.values(dpm);const sharpe=calcSharpe(dp);let eq=0;const eqL=[],eqV=[];sorted.forEach(t=>{eq+=t.netPnl;eqL.push(t.id);eqV.push(+eq.toFixed(2));});const mdd=calcMDD(eqV);const rf=mdd.amt>0?totalPnl/mdd.amt:null;document.getElementById('st-cards').innerHTML=[{t:'Net P&L',v:(totalPnl>=0?'+':'')+'$'+f2(totalPnl),c:totalPnl>=0?'pos':'neg',s:fin.length+' trades'},{t:'Win Rate',v:f2(wr,1)+'%',c:wr>=50?'pos':'neg',s:wins.length+'W '+losses.length+'L '+be.length+'BE'},{t:'Expectancy',v:(exp.usd>=0?'+':'')+'$'+f2(exp.usd),c:exp.usd>=0?'pos':'neg',s:f2(exp.r,3)+'R/trade'},{t:'Profit Factor',v:f2(pf,2),c:pf>=1?'pos':'neg',s:'Gross P÷L'},{t:'Sharpe Ratio',v:sharpe!=null?f2(sharpe,2):'N/A',c:sharpe!=null&&sharpe>=1?'pos':'neu',s:'Annualized'},{t:'Max Drawdown',v:f2(mdd.pct,1)+'%',c:mdd.pct>15?'neg':mdd.pct>5?'neu':'pos',s:'$'+f2(mdd.amt)},{t:'Avg Winner',v:wins.length?'+$'+f2(aw):'—',c:'pos',s:'Per win'},{t:'Avg Loser',v:losses.length?'$'+f2(al):'—',c:'neg',s:'Per loss'}].map(c=>`<div class="card" style="padding:14px 16px"><div class="ctitle">${c.t}</div><div class="cval ${c.c}">${c.v}</div><div class="csub">${c.s}</div></div>`).join('');mkChart('eq-ch','line',{labels:eqL,datasets:[{label:'Equity',data:eqV,borderColor:'var(--accent)',backgroundColor:'rgba(34,201,147,.1)',borderWidth:2,fill:true,tension:.3,pointRadius:2,pointBackgroundColor:eqV.map(v=>v>=0?'var(--up)':'var(--down)')}]},{plugins:{legend:{display:false}}});dChart('pie-ch');const pieCtx=document.getElementById('pie-ch');if(pieCtx)_charts['pie-ch']=new Chart(pieCtx.getContext('2d'),{type:'doughnut',data:{labels:['Wins','Losses','BE'],datasets:[{data:[wins.length,losses.length,be.length],backgroundColor:['#22c993','#ff5470','#4a5263'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{labels:{color:'var(--fg-3)',font:{size:11}}}}}});const DOW={Sun:0,Mon:0,Tue:0,Wed:0,Thu:0,Fri:0,Sat:0};fin.forEach(t=>{const d=new Date((t.exitDate||t.entryDate)+'T12:00:00');DOW[['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]]+=(t.netPnl||0);});mkChart('dow-ch','bar',{labels:Object.keys(DOW),datasets:[{data:Object.values(DOW),backgroundColor:Object.values(DOW).map(v=>v>=0?'rgba(34,201,147,.7)':'rgba(255,84,112,.7)'),borderRadius:3}]},{});const SES={Asian:0,'Asian/London Overlap':0,London:0,'London/NY Overlap':0,'New York':0};fin.forEach(t=>{if(t.session&&SES[t.session]!==undefined)SES[t.session]+=(t.netPnl||0);});mkChart('ses-ch','bar',{labels:['Asian','A/L Overlap','London','L/NY Overlap','New York'],datasets:[{data:Object.values(SES),backgroundColor:Object.values(SES).map(v=>v>=0?'rgba(106,169,255,.7)':'rgba(255,84,112,.7)'),borderRadius:3}]},{});const GRD={'A+':0,A:0,B:0,C:0,D:0};fin.forEach(t=>{if(t.grade&&GRD[t.grade]!==undefined)GRD[t.grade]+=(t.netPnl||0);});mkChart('grade-ch','bar',{labels:Object.keys(GRD),datasets:[{data:Object.values(GRD),backgroundColor:['rgba(188,140,255,.7)','rgba(106,169,255,.7)','rgba(34,201,147,.7)','rgba(245,185,66,.7)','rgba(255,84,112,.7)'],borderRadius:3}]},{});const EMO={Disciplined:0,Confident:0,FOMO:0,Revenge:0,Fear:0,Overconfident:0,Bored:0};fin.forEach(t=>{if(t.emotion&&EMO[t.emotion]!==undefined)EMO[t.emotion]+=(t.netPnl||0);});mkChart('emo-ch','bar',{labels:Object.keys(EMO),datasets:[{data:Object.values(EMO),backgroundColor:Object.values(EMO).map(v=>v>=0?'rgba(34,201,147,.6)':'rgba(255,84,112,.6)'),borderRadius:3}]},{});const totalComm=fin.reduce((s,t)=>s+(t.commission||0),0);const maxCW=maxConsec(sorted,t=>t.netPnl>0),maxCL=maxConsec(sorted,t=>t.netPnl<0);document.getElementById('detail-stats').innerHTML=[['Expectancy ($)',(exp.usd>=0?'+':'')+'$'+f2(exp.usd),exp.usd>=0?'pos':'neg'],['Expectancy (R)',(exp.r>=0?'+':'')+''+f2(exp.r,3)+'R',exp.r>=0?'pos':'neg'],['Sharpe Ratio',sharpe!=null?f2(sharpe,2):'N/A',sharpe!=null&&sharpe>=1?'pos':'neu'],['Max Drawdown ($)','$'+f2(mdd.amt),'neg'],['Max Drawdown (%)',''+f2(mdd.pct,2)+'%','neg'],['Recovery Factor',rf!=null?f2(rf,2):'N/A',rf!=null&&rf>=1?'pos':'neu'],['Max Consec Wins',maxCW,'pos'],['Max Consec Losses',maxCL,'neg'],['Total Commissions','$'+f2(totalComm),'neg'],['Best Trade',wins.length?'+$'+f2(Math.max(...wins.map(t=>t.netPnl))):'—','pos'],['Worst Trade',losses.length?'$'+f2(Math.min(...losses.map(t=>t.netPnl))):'—','neg']].map(([l,v,c])=>`<div class="srow"><div class="slabel">${l}</div><div class="sval ${c}">${v}</div></div>`).join('');const byS={};fin.forEach(t=>{if(!byS[t.symbol])byS[t.symbol]={pnl:0,n:0,w:0};byS[t.symbol].pnl+=(t.netPnl||0);byS[t.symbol].n++;if(t.netPnl>0)byS[t.symbol].w++;});document.getElementById('sym-stats').innerHTML=Object.entries(byS).sort((a,b)=>b[1].pnl-a[1].pnl).map(([sym,v])=>`<div class="srow"><div><strong>${sym}</strong> <span class="tag">${v.n}t</span></div><div style="text-align:right"><div style="color:${pnlC(v.pnl)};font-weight:700">${v.pnl>=0?'+':''}$${f2(v.pnl)}</div><div style="font-size:11px;color:var(--fg-3)">${(v.w/v.n*100).toFixed(0)}% WR</div></div></div>`).join('')||'<div style="color:var(--fg-3);padding:8px">No data</div>';const rfW=fin.filter(t=>t.rulesFollowed==='Yes'&&t.netPnl>0).length,rfT=fin.filter(t=>t.rulesFollowed==='Yes').length;const rbW=fin.filter(t=>t.rulesFollowed==='No'&&t.netPnl>0).length,rbT=fin.filter(t=>t.rulesFollowed==='No').length;document.getElementById('rules-stats').innerHTML=`<div class="srow"><div class="slabel">Rules Followed WR</div><div class="sval pos">${rfT?f2(rfW/rfT*100,1)+'%':'N/A'} <span class="tag">${rfT}t</span></div></div><div class="srow"><div class="slabel">Rules Broken WR</div><div class="sval neg">${rbT?f2(rbW/rbT*100,1)+'%':'N/A'} <span class="tag">${rbT}t</span></div></div>`;}
 
