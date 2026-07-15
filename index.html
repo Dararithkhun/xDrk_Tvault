@@ -1243,6 +1243,16 @@ tr:hover .row-actions{opacity:1}
               </div>
             </div>
           </div>
+          <div class="cbox" style="margin-bottom:20px">
+            <h3>AI Vision / OCR</h3>
+            <div style="font-size:12px;color:var(--fg-3);margin-bottom:12px">Stored locally in your browser — never sent to the server. Used to scan trading screenshots and auto-fill the trade form.</div>
+            <div style="display:grid;gap:10px">
+              <div class="fg"><label>Gemini API Key</label><input type="password" id="s-gemini-key" placeholder="Enter your Gemini API key"></div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span id="gemini-status" style="font-size:11px;color:var(--fg-3)"></span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1258,8 +1268,13 @@ tr:hover .row-actions{opacity:1}
   <div class="modal">
     <div class="mhdr">
       <div class="mtitle" id="modal-title">Add Trade</div>
-      <button class="mclose" onclick="closeModal()">&#215;</button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-sm" onclick="scanTradeImage()" title="Scan screenshot with Gemini AI">📷 Scan</button>
+        <button class="mclose" onclick="closeModal()">&#215;</button>
+      </div>
     </div>
+    <div id="ocr-status" style="display:none;padding:6px 16px;font-size:12px;border-bottom:1px solid var(--line)"></div>
+    <input type="file" id="ocr-file-input" accept="image/*" style="display:none" onchange="processOCRImage(this)">
     <div class="mfooter" style="border-top:none;border-bottom:1px solid var(--line)">
       <button class="btn" onclick="closeModal()">Cancel</button>
       <button class="btn btn-primary" id="save-btn" onclick="saveTrade()">Save Trade</button>
@@ -1949,6 +1964,7 @@ async function deleteDiary(id){
 async function loadSettings(){const emailEls=document.querySelectorAll('#s-email,#s-email-sec');emailEls.forEach(el=>{if(el)el.textContent=CU?.email||'';});const unEl=document.getElementById('s-username');if(unEl)unEl.value=CU?.user_metadata?.username||'';const s=await getSettings();const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null?v:'';};sv('s-cap',s.capital);sv('s-rp',s.riskPct);sv('s-dl',s.dloss);sv('s-wl',s.wloss);sv('s-ml',s.mloss);sv('s-mt',s.maxtrades);sv('s-mg',s.mgoal);sv('s-wg',s.wgoal);renderRules(s.rules||[...DEFAULT_RULES]);loadWatchlistUI();renderSessionsUI();renderStrategiesUI();const themeEl=document.getElementById('s-theme');if(themeEl)themeEl.value=localStorage.getItem('tv_theme')||'dark';const densEl=document.getElementById('s-density');if(densEl)densEl.value=localStorage.getItem('tv_density')||'';const tzEl=document.getElementById('s-tz');if(tzEl)tzEl.value=getUserTZ();
 const r2w=document.getElementById('s-r2-worker');if(r2w)r2w.value=localStorage.getItem('tv_r2_worker')||'';
 const r2s=document.getElementById('r2-status');if(r2s)r2s.textContent=localStorage.getItem('tv_r2_token')?'Token configured ✓':'Token not set';
+const gemSt=document.getElementById('gemini-status');if(gemSt)gemSt.textContent=localStorage.getItem('tv_gemini_key')?'Key configured ✓':'Key not set';
 loadDbStats();}
 async function loadDbStats(){
   const btn=document.getElementById('db-refresh-btn');
@@ -1989,7 +2005,7 @@ async function loadDbStats(){
 function renderRules(rules){document.getElementById('rules-list').innerHTML=rules.map((r,i)=>`<div class="rule-item"><span style="color:var(--fg-3);min-width:20px;font-size:12px">${i+1}.</span><input type="text" id="rule-${i}" value="${r}" style="flex:1"><button class="btn btn-danger btn-sm" onclick="removeRule(${i})">✕</button></div>`).join('');}
 async function addRule(){const s=await getSettings();const rules=s.rules||[...DEFAULT_RULES];rules.push('New trading rule');renderRules(rules);}
 async function removeRule(i){const s=await getSettings();const rules=s.rules||[...DEFAULT_RULES];rules.splice(i,1);renderRules(rules);}
-async function saveSettings(){const rules=[];let i=0;while(document.getElementById('rule-'+i)){rules.push(document.getElementById('rule-'+i).value);i++;}const tzVal=document.getElementById('s-tz')?.value;if(tzVal)localStorage.setItem('tv_timezone',tzVal);const s={capital:parseFloat(document.getElementById('s-cap').value)||1000,riskPct:parseFloat(document.getElementById('s-rp').value)||1,dloss:parseFloat(document.getElementById('s-dl').value)||null,wloss:parseFloat(document.getElementById('s-wl').value)||null,mloss:parseFloat(document.getElementById('s-ml').value)||null,maxtrades:parseInt(document.getElementById('s-mt').value)||null,mgoal:parseFloat(document.getElementById('s-mg').value)||null,wgoal:parseFloat(document.getElementById('s-wg').value)||null,rules};const{error}=await sb.from('settings').upsert(settingsToDb(s),{onConflict:'user_id'});if(error){alert('Save failed: '+error.message);return;}_settings=s;toast('Settings saved');await renderDash();}
+async function saveSettings(){const rules=[];let i=0;while(document.getElementById('rule-'+i)){rules.push(document.getElementById('rule-'+i).value);i++;}const tzVal=document.getElementById('s-tz')?.value;if(tzVal)localStorage.setItem('tv_timezone',tzVal);const gKey=document.getElementById('s-gemini-key');if(gKey&&gKey.value.trim())localStorage.setItem('tv_gemini_key',gKey.value.trim());const gemSt=document.getElementById('gemini-status');if(gemSt)gemSt.textContent=localStorage.getItem('tv_gemini_key')?'Key saved ✓':'Key not set';const s={capital:parseFloat(document.getElementById('s-cap').value)||1000,riskPct:parseFloat(document.getElementById('s-rp').value)||1,dloss:parseFloat(document.getElementById('s-dl').value)||null,wloss:parseFloat(document.getElementById('s-wl').value)||null,mloss:parseFloat(document.getElementById('s-ml').value)||null,maxtrades:parseInt(document.getElementById('s-mt').value)||null,mgoal:parseFloat(document.getElementById('s-mg').value)||null,wgoal:parseFloat(document.getElementById('s-wg').value)||null,rules};const{error}=await sb.from('settings').upsert(settingsToDb(s),{onConflict:'user_id'});if(error){alert('Save failed: '+error.message);return;}_settings=s;toast('Settings saved');await renderDash();}
 async function saveProfile(){const name=document.getElementById('s-username').value.trim();const msg=document.getElementById('profile-msg');if(!name){msg.innerHTML='<span style="color:var(--down)">Name is required</span>';return;}const{error}=await sb.auth.updateUser({data:{username:name}});if(error){msg.innerHTML=`<span style="color:var(--down)">${error.message}</span>`;return;}if(CU)CU.user_metadata={...CU.user_metadata,username:name};const initials=name.slice(0,2).toUpperCase();document.querySelectorAll('#acct-avatar,#mob-avatar').forEach(el=>{if(el)el.textContent=initials;});const navName=document.getElementById('nav-name');if(navName)navName.textContent=name;msg.innerHTML='<span style="color:var(--up)">Profile updated</span>';setTimeout(()=>{msg.innerHTML='';},3000);}
 async function changePassword(){const np=document.getElementById('s-np').value;const np2=document.getElementById('s-np2').value;const msg=document.getElementById('pw-msg');if(np.length<6){msg.innerHTML='<span style="color:var(--down)">Minimum 6 characters</span>';return;}if(np!==np2){msg.innerHTML='<span style="color:var(--down)">Passwords do not match</span>';return;}const{error}=await sb.auth.updateUser({password:np});if(error){msg.innerHTML=`<span style="color:var(--down)">${error.message}</span>`;}else{msg.innerHTML='<span style="color:var(--up)">Password updated successfully</span>';document.getElementById('s-np').value='';document.getElementById('s-np2').value='';}}
 async function resetTrades(){if(!confirm('Reset ALL trades to sample data?'))return;const{error}=await sb.from('trades').delete().eq('user_id',CU.id);if(error){alert('Error: '+error.message);return;}const rows=SEED.map(t=>tradeToDb({...t}));await sb.from('trades').insert(rows);invalidate();toast('Trades reset');await renderJournal();await renderDash();}
@@ -3122,6 +3138,64 @@ async function saveTradeReflection(id){
   if(error){toast('Save failed');return;}
   invalidate();toast('Reflection saved');
   const cached=(_trades||[]).find(x=>x.id===id);if(cached)cached.reflection=reflection;
+}
+
+// ── AI OCR ────────────────────────────────────────────────
+function scanTradeImage(){
+  const key=localStorage.getItem('tv_gemini_key');
+  if(!key){
+    const st=document.getElementById('ocr-status');
+    if(st){st.style.display='';st.style.color='var(--down)';st.textContent='⚠ No Gemini API key — add one in Settings → AI Vision / OCR';}
+    return;
+  }
+  const inp=document.getElementById('ocr-file-input');
+  if(inp){inp.value='';inp.click();}
+}
+
+async function processOCRImage(input){
+  const file=input.files[0];if(!file)return;
+  const key=localStorage.getItem('tv_gemini_key');if(!key)return;
+  const st=document.getElementById('ocr-status');
+  const show=(msg,color)=>{if(st){st.style.display='';st.style.color=color||'var(--fg-2)';st.textContent=msg;}};
+  show('Scanning…');
+  try{
+    const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
+    const prompt=`You are a trading assistant. Extract trade fields from this screenshot and return ONLY a valid JSON object (no markdown, no explanation) with these keys (use null for any field not visible):
+{
+  "symbol": string,
+  "direction": "Long" or "Short",
+  "entryPrice": number,
+  "exitPrice": number,
+  "quantity": number,
+  "stopPrice": number,
+  "entryDate": "YYYY-MM-DD",
+  "entryTime": "HH:MM",
+  "exitDate": "YYYY-MM-DD",
+  "exitTime": "HH:MM",
+  "netPnl": number,
+  "commission": number
+}`;
+    const body={contents:[{parts:[{text:prompt},{inline_data:{mime_type:file.type,data:b64}}]}]};
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`HTTP ${res.status}`);}
+    const data=await res.json();
+    const text=(data?.candidates?.[0]?.content?.parts?.[0]?.text||'').trim();
+    let parsed;
+    try{
+      const jsonStr=text.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```$/,'').trim();
+      parsed=JSON.parse(jsonStr);
+    }catch{throw new Error('Could not parse JSON from AI response');}
+    // Fill form fields
+    const sv=(id,v)=>{if(v==null||v==='')return;const el=document.getElementById(id);if(el)el.value=v;};
+    if(parsed.symbol)document.getElementById('f-sym').value=String(parsed.symbol).toUpperCase().trim();
+    if(parsed.direction&&['Long','Short'].includes(parsed.direction))document.getElementById('f-dir').value=parsed.direction;
+    sv('f-ep',parsed.entryPrice);sv('f-xp',parsed.exitPrice);sv('f-qty',parsed.quantity);
+    sv('f-sp',parsed.stopPrice);sv('f-ed',parsed.entryDate);sv('f-et',parsed.entryTime);
+    sv('f-xd',parsed.exitDate);sv('f-xt',parsed.exitTime);sv('f-pnl',parsed.netPnl);sv('f-comm',parsed.commission);
+    autoCalc();autoRR();autoSes();
+    const filled=Object.entries(parsed).filter(([,v])=>v!=null).map(([k])=>k).join(', ');
+    show(`✓ Filled: ${filled||'no fields detected'}`, 'var(--up)');
+  }catch(err){show(`✗ ${err.message}`,'var(--down)');}
 }
 </script>
 </body>
