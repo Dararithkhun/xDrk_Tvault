@@ -18,7 +18,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
-<script src="https://unpkg.com/tesseract.js@4/dist/tesseract.min.js"></script>
 <style>
 /* ============================================================
    xDrk TradeVault — Pro-trader dark UI
@@ -1231,6 +1230,14 @@ tr:hover .row-actions{opacity:1}
               <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
             </div>
           </div>
+          <div class="cbox" style="margin-bottom:20px">
+            <h3>AI Vision / OCR</h3>
+            <div style="font-size:12px;color:var(--fg-3);margin-bottom:12px">Free at <strong>openrouter.ai</strong> — no billing required. Used to scan trading screenshots and auto-fill the trade form.</div>
+            <div style="display:grid;gap:10px">
+              <div class="fg"><label>OpenRouter API Key</label><input type="password" id="s-gemini-key" placeholder="sk-or-…"></div>
+              <span id="gemini-status" style="font-size:11px;color:var(--fg-3)"></span>
+            </div>
+          </div>
           <button class="btn btn-primary" style="margin-bottom:20px" onclick="saveSettings()">Save Settings</button>
           <div class="cbox" style="margin-bottom:20px">
             <h3>Screenshot Storage (Cloudflare R2)</h3>
@@ -1995,7 +2002,7 @@ async function loadDbStats(){
 function renderRules(rules){document.getElementById('rules-list').innerHTML=rules.map((r,i)=>`<div class="rule-item"><span style="color:var(--fg-3);min-width:20px;font-size:12px">${i+1}.</span><input type="text" id="rule-${i}" value="${r}" style="flex:1"><button class="btn btn-danger btn-sm" onclick="removeRule(${i})">✕</button></div>`).join('');}
 async function addRule(){const s=await getSettings();const rules=s.rules||[...DEFAULT_RULES];rules.push('New trading rule');renderRules(rules);}
 async function removeRule(i){const s=await getSettings();const rules=s.rules||[...DEFAULT_RULES];rules.splice(i,1);renderRules(rules);}
-async function saveSettings(){const rules=[];let i=0;while(document.getElementById('rule-'+i)){rules.push(document.getElementById('rule-'+i).value);i++;}const tzVal=document.getElementById('s-tz')?.value;if(tzVal)localStorage.setItem('tv_timezone',tzVal);const s={capital:parseFloat(document.getElementById('s-cap').value)||1000,riskPct:parseFloat(document.getElementById('s-rp').value)||1,dloss:parseFloat(document.getElementById('s-dl').value)||null,wloss:parseFloat(document.getElementById('s-wl').value)||null,mloss:parseFloat(document.getElementById('s-ml').value)||null,maxtrades:parseInt(document.getElementById('s-mt').value)||null,mgoal:parseFloat(document.getElementById('s-mg').value)||null,wgoal:parseFloat(document.getElementById('s-wg').value)||null,rules};const{error}=await sb.from('settings').upsert(settingsToDb(s),{onConflict:'user_id'});if(error){alert('Save failed: '+error.message);return;}_settings=s;toast('Settings saved');await renderDash();}
+async function saveSettings(){const rules=[];let i=0;while(document.getElementById('rule-'+i)){rules.push(document.getElementById('rule-'+i).value);i++;}const tzVal=document.getElementById('s-tz')?.value;if(tzVal)localStorage.setItem('tv_timezone',tzVal);const gKey=document.getElementById('s-gemini-key');if(gKey&&gKey.value.trim())localStorage.setItem('tv_gemini_key',gKey.value.trim());const gemSt=document.getElementById('gemini-status');if(gemSt)gemSt.textContent=localStorage.getItem('tv_gemini_key')?'Key saved ✓':'Key not set';const s={capital:parseFloat(document.getElementById('s-cap').value)||1000,riskPct:parseFloat(document.getElementById('s-rp').value)||1,dloss:parseFloat(document.getElementById('s-dl').value)||null,wloss:parseFloat(document.getElementById('s-wl').value)||null,mloss:parseFloat(document.getElementById('s-ml').value)||null,maxtrades:parseInt(document.getElementById('s-mt').value)||null,mgoal:parseFloat(document.getElementById('s-mg').value)||null,wgoal:parseFloat(document.getElementById('s-wg').value)||null,rules};const{error}=await sb.from('settings').upsert(settingsToDb(s),{onConflict:'user_id'});if(error){alert('Save failed: '+error.message);return;}_settings=s;toast('Settings saved');await renderDash();}
 async function saveProfile(){const name=document.getElementById('s-username').value.trim();const msg=document.getElementById('profile-msg');if(!name){msg.innerHTML='<span style="color:var(--down)">Name is required</span>';return;}const{error}=await sb.auth.updateUser({data:{username:name}});if(error){msg.innerHTML=`<span style="color:var(--down)">${error.message}</span>`;return;}if(CU)CU.user_metadata={...CU.user_metadata,username:name};const initials=name.slice(0,2).toUpperCase();document.querySelectorAll('#acct-avatar,#mob-avatar').forEach(el=>{if(el)el.textContent=initials;});const navName=document.getElementById('nav-name');if(navName)navName.textContent=name;msg.innerHTML='<span style="color:var(--up)">Profile updated</span>';setTimeout(()=>{msg.innerHTML='';},3000);}
 async function changePassword(){const np=document.getElementById('s-np').value;const np2=document.getElementById('s-np2').value;const msg=document.getElementById('pw-msg');if(np.length<6){msg.innerHTML='<span style="color:var(--down)">Minimum 6 characters</span>';return;}if(np!==np2){msg.innerHTML='<span style="color:var(--down)">Passwords do not match</span>';return;}const{error}=await sb.auth.updateUser({password:np});if(error){msg.innerHTML=`<span style="color:var(--down)">${error.message}</span>`;}else{msg.innerHTML='<span style="color:var(--up)">Password updated successfully</span>';document.getElementById('s-np').value='';document.getElementById('s-np2').value='';}}
 async function resetTrades(){if(!confirm('Reset ALL trades to sample data?'))return;const{error}=await sb.from('trades').delete().eq('user_id',CU.id);if(error){alert('Error: '+error.message);return;}const rows=SEED.map(t=>tradeToDb({...t}));await sb.from('trades').insert(rows);invalidate();toast('Trades reset');await renderJournal();await renderDash();}
@@ -2547,6 +2554,7 @@ async function loadSettings(){
   const tzEl=document.getElementById('s-tz');if(tzEl)tzEl.value=getUserTZ();
   loadDbStats();
   renderClocksSettings();
+  const gemSt=document.getElementById('gemini-status');if(gemSt)gemSt.textContent=localStorage.getItem('tv_gemini_key')?'Key configured ✓':'Key not set';
 }
 
 // Override renderDash to check loss limits and fire notifications
@@ -3131,54 +3139,69 @@ async function saveTradeReflection(id){
 }
 
 // ── AI OCR ────────────────────────────────────────────────
+// ── AI OCR (OpenRouter) ───────────────────────────────────
 function triggerOCR(){
+  const key=localStorage.getItem('tv_gemini_key');
+  if(!key){toast('Add your OpenRouter API key in Settings → AI Vision / OCR first');return;}
   document.getElementById('ocr-input').click();
 }
 
 async function runOCR(input){
   if(!input.files[0])return;
+  const key=localStorage.getItem('tv_gemini_key');
   const status=document.getElementById('ocr-status');
   status.style.display='block';
   status.style.background='var(--bg-3)';
   status.style.color='var(--fg-3)';
-  status.textContent='🔍 Reading screenshot…';
+  status.textContent='🔍 Scanning screenshot…';
   document.getElementById('ocr-btn').disabled=true;
   try{
-    const {data:{text}}=await Tesseract.recognize(input.files[0],'eng');
+    const base64=await new Promise(res=>{
+      const r=new FileReader();
+      r.onload=e=>res(e.target.result);
+      r.readAsDataURL(input.files[0]);
+    });
+    const resp=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},
+      body:JSON.stringify({
+        model:'meta-llama/llama-3.2-11b-vision-instruct:free',
+        messages:[{role:'user',content:[
+          {type:'text',text:`You are a trading journal assistant. Extract trade details from this screenshot of a trading platform (e.g. MT4, MT5, TradingView).
+Return ONLY valid JSON with these exact keys (use null if not visible):
+{
+  "symbol": "ticker only, remove any trailing m or M suffix (e.g. XAUUSDm becomes XAUUSD)",
+  "direction": "Long or Short (buy/Buy = Long, sell/Sell = Short)",
+  "entry_price": 0.00,
+  "exit_price": 0.00,
+  "quantity": 0.00,
+  "stop_price": 0.00,
+  "entry_date": "YYYY-MM-DD (convert dot-separated dates like 2026.07.15 to 2026-07-15)",
+  "entry_time": "HH:MM (drop seconds, e.g. 16:56:47 becomes 16:56)",
+  "exit_date": "YYYY-MM-DD (convert dot-separated dates like 2026.07.15 to 2026-07-15)",
+  "exit_time": "HH:MM (drop seconds)",
+  "pnl": 0.00,
+  "commission": 0.00
+}
+No markdown, no explanation, just the JSON.`},
+          {type:'image_url',image_url:{url:base64}}
+        ]}]
+      })
+    });
+    const data=await resp.json();
+    if(data.error)throw new Error(data.error.message);
+    const raw=data.choices[0].message.content.trim();
+    const t=JSON.parse(raw.replace(/```json|```/g,'').trim());
     let filled=0;
     const set=(id,val)=>{if(val==null)return;const el=document.getElementById(id);if(el){el.value=val;filled++;}};
-
-    // Symbol — uppercase word 6-10 chars (XAUUSD, BTCUSDT etc)
-    const sym=text.match(/\b([A-Z]{3,6}\/[A-Z]{3}|[A-Z]{5,10})\b/);
-    if(sym){document.getElementById('f-sym').value=sym[1];filled++;}
-
-    // Direction
-    if(/\b(buy|long)\b/i.test(text)){document.getElementById('f-dir').value='Long';filled++;}
-    else if(/\b(sell|short)\b/i.test(text)){document.getElementById('f-dir').value='Short';filled++;}
-
-    // Prices — find numbers near keywords
-    const near=(kw,txt)=>{const m=txt.match(new RegExp(kw+'[^\\d]{0,10}([\\d]+\\.?[\\d]*)','i'));return m?parseFloat(m[1]):null;};
-    set('f-ep', near('(open|entry|buy at|open price)',text));
-    set('f-xp', near('(close|exit|sell at|close price)',text));
-    set('f-sp', near('(sl|stop loss|stop)',text));
-    set('f-qty',near('(lot|lots|volume|qty|size)',text));
-    set('f-pnl',near('(profit|p&l|pnl|result)',text));
-    set('f-comm',near('(commission|fee|swap)',text));
-
-    // Date/time
-    const dt=text.match(/(\d{4}[-\/]\d{2}[-\/]\d{2})/);
-    if(dt){set('f-ed',dt[1].replace(/\//g,'-'));set('f-xd',dt[1].replace(/\//g,'-'));}
-    const tm=text.match(/(\d{2}:\d{2})/);
-    if(tm){set('f-et',tm[1]);set('f-xt',tm[1]);}
-
+    if(t.symbol){document.getElementById('f-sym').value=String(t.symbol).toUpperCase();filled++;}
+    if(t.direction){document.getElementById('f-dir').value=String(t.direction).toLowerCase().includes('long')?'Long':'Short';filled++;}
+    set('f-ep',t.entry_price);set('f-xp',t.exit_price);set('f-qty',t.quantity);
+    set('f-sp',t.stop_price);set('f-ed',t.entry_date);set('f-et',t.entry_time);
+    set('f-xd',t.exit_date);set('f-xt',t.exit_time);set('f-pnl',t.pnl);set('f-comm',t.commission);
     autoCalc();autoRR();autoSes();
-    if(filled>0){
-      status.style.background='var(--up-dim)';status.style.color='var(--up)';
-      status.textContent=`✓ ${filled} fields filled — review and adjust before saving`;
-    }else{
-      status.style.background='var(--warn-dim)';status.style.color='var(--warn)';
-      status.textContent='⚠ Could not read any fields — try a clearer screenshot';
-    }
+    status.style.background='var(--up-dim)';status.style.color='var(--up)';
+    status.textContent=`✓ ${filled} fields filled — review and adjust before saving`;
   }catch(err){
     status.style.background='var(--down-dim)';status.style.color='var(--down)';
     status.textContent=`✗ ${err.message}`;
