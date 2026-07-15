@@ -3167,7 +3167,7 @@ async function runOCR(input){
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},
       body:JSON.stringify({
-        model:localStorage.getItem('tv_or_model')||'qwen/qwen2-vl-7b-instruct:free',
+        model:localStorage.getItem('tv_or_model')||'openrouter/auto',
         messages:[{role:'user',content:[
           {type:'text',text:`You are a trading journal assistant. Extract trade details from this screenshot of a trading platform (e.g. MT4, MT5, TradingView).
 Return ONLY valid JSON with these exact keys (use null if not visible):
