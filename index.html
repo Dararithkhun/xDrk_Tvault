@@ -723,7 +723,7 @@ tr:hover .row-actions{opacity:1}
         <span class="lbl">Settings</span>
       </button>
     </div>
-    <div style="text-align:center;padding:12px 0 14px;font-size:10px;color:var(--fg-3);letter-spacing:.4px;opacity:.6"><!-- APP_VERSION -->App Version 1.0.55<!-- /APP_VERSION --></div>
+    <div style="text-align:center;padding:12px 0 14px;font-size:10px;color:var(--fg-3);letter-spacing:.4px;opacity:.6"><!-- APP_VERSION -->App Version 1.0.56<!-- /APP_VERSION --></div>
   </aside>
 
   <!-- TOPBAR -->
@@ -1311,7 +1311,7 @@ tr:hover .row-actions{opacity:1}
       <div class="fgrid f4" style="gap:10px">
         <div class="fg"><label>Status</label><select id="f-status"><option>Open</option><option>Finished</option><option>Cancelled</option></select></div>
         <div class="fg"><label>Asset Type</label><select id="f-asset" onchange="updatePrefix()"><option>Crypto</option><option>Gold (XAUUSD)</option><option>Silver (XAGUSD)</option><option>Major (XXX/USD)</option><option>Major (USD/XXX)</option><option>Minor / Cross</option><option>Stock Index CFDs</option><option>Stocks</option><option>Oil / Energy</option></select></div>
-        <div class="fg"><label>Symbol</label><input type="text" id="f-sym" placeholder="e.g. ETHUSDT" oninput="this.value=this.value.toUpperCase()" style="text-transform:uppercase"></div>
+        <div class="fg"><label>Symbol</label><input type="text" id="f-sym" placeholder="e.g. XAUUSD" oninput="this.value=this.value.toUpperCase()" style="text-transform:uppercase"></div>
         <div class="fg"><label>Direction</label><select id="f-dir" onchange="autoCalc()"><option>Long</option><option>Short</option></select></div>
       </div>
       <div class="fgrid f4" style="gap:10px;margin-top:10px">
@@ -1809,7 +1809,7 @@ function exportCSV(){if(!_trades||!_trades.length){alert('No trades to export.')
 // ── MODAL ─────────────────────────────────────────────────
 let editingId=null,ssData=[],_ssKey=[],_formBE=false,_clearSS=false;
 function resetBEBtn(){_formBE=false;const btn=document.getElementById('be-btn');const rr=document.getElementById('f-rr');if(btn){btn.style.background='';btn.style.color='';btn.style.borderColor='';}if(rr){rr.value='';rr.style.opacity='.6';rr.style.color='';rr.style.fontWeight='';}}
-function openModal(){populateModalDropdowns();editingId=null;ssData=[];_ssKey=[];_clearSS=false;resetBEBtn();document.getElementById('modal-title').textContent='Add Trade';setForm({status:'Open',assetType:'Crypto',symbol:'',direction:'Long',grade:'A',emotion:'Disciplined',rulesFollowed:'Yes',session:'London/NY Overlap',entryDate:today(),entryTime:'',exitDate:'',exitTime:'',quantity:'',entryPrice:'',stopPrice:'',exitPrice:'',commission:'',netPnl:'',risk:'',rr:'',strategy:'',multiplier:1,comments:''});document.getElementById('ss-prev').innerHTML='';document.getElementById('auto-hint').textContent='';document.getElementById('trade-modal').classList.add('open');}
+function openModal(){populateModalDropdowns();editingId=null;ssData=[];_ssKey=[];_clearSS=false;resetBEBtn();document.getElementById('modal-title').textContent='Add Trade';setForm({status:'Open',assetType:'Gold (XAUUSD)',symbol:'XAUUSD',direction:'Long',grade:'A',emotion:'Disciplined',rulesFollowed:'Yes',session:'London/NY Overlap',entryDate:today(),entryTime:'',exitDate:'',exitTime:'',quantity:'',entryPrice:'',stopPrice:'',exitPrice:'',commission:'',netPnl:'',risk:'',rr:'',strategy:'',multiplier:1,comments:''});document.getElementById('ss-prev').innerHTML='';document.getElementById('auto-hint').textContent='';document.getElementById('trade-modal').classList.add('open');}
 function editTrade(id){populateModalDropdowns();editingId=id;const t=(_trades||[]).find(x=>x.id===id);if(!t)return;resetBEBtn();document.getElementById('modal-title').textContent='Edit — '+id;setForm(t);if(t.be){_formBE=true;const btn=document.getElementById('be-btn');const rr=document.getElementById('f-rr');if(btn){btn.style.background='var(--warn)';btn.style.color='#000';btn.style.borderColor='var(--warn)';}if(rr){rr.value='BE';rr.style.opacity='1';rr.style.color='var(--warn)';rr.style.fontWeight='700';}}_clearSS=false;ssData=[...(t.screenshots||[])];_ssKey=[];document.getElementById('ss-prev').innerHTML=ssGalleryHtml(ssData);document.getElementById('trade-modal').classList.add('open');}
 function setForm(t){const sv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null?v:'';};sv('f-status',t.status);sv('f-asset',t.assetType);sv('f-sym',t.symbol);sv('f-dir',t.direction);sv('f-grade',t.grade);sv('f-emo',t.emotion);sv('f-rules',t.rulesFollowed);sv('f-ses',t.session);sv('f-ed',t.entryDate);sv('f-et',t.entryTime);sv('f-xd',t.exitDate);sv('f-xt',t.exitTime);sv('f-qty',t.quantity);sv('f-ep',t.entryPrice);sv('f-sp',t.stopPrice);sv('f-xp',t.exitPrice);sv('f-comm',t.commission);sv('f-pnl',t.netPnl);sv('f-risk',t.risk);sv('f-rr',t.rr);sv('f-strat',t.strategy);sv('f-mult',t.multiplier);sv('f-notes',t.comments);}
 function closeModal(){document.getElementById('trade-modal').classList.remove('open');ssData=[];_ssKey=[];_clearSS=false;}
