@@ -723,7 +723,7 @@ tr:hover .row-actions{opacity:1}
         <span class="lbl">Settings</span>
       </button>
     </div>
-    <div style="text-align:center;padding:12px 0 14px;font-size:10px;color:var(--fg-3);letter-spacing:.4px;opacity:.6"><!-- APP_VERSION -->App Version 1.0.57<!-- /APP_VERSION --></div>
+    <div style="text-align:center;padding:12px 0 14px;font-size:10px;color:var(--fg-3);letter-spacing:.4px;opacity:.6"><!-- APP_VERSION -->App Version 1.0.58<!-- /APP_VERSION --></div>
   </aside>
 
   <!-- TOPBAR -->
@@ -2974,21 +2974,27 @@ async function loadFFCalendar(week){
   const root=document.getElementById('ff-calendar-root');
   root.innerHTML='<div style="text-align:center;padding:48px;color:var(--fg-3);font-size:13px">Loading Forex Factory…</div>';
   const {worker}=getR2Config();
-  let data=null;
-  // Try worker proxy first, then direct (FF sometimes allows CORS)
+  let data=null,lastErr='';
+  // Use URL origin so stored path (e.g. /upload) doesn't break the route
+  const workerOrigin=worker?new URL(worker).origin:null;
   const sources=[];
-  if(worker)sources.push(worker.replace(/\/$/,'')+'/ff-calendar?week='+_ffWeek);
+  if(workerOrigin)sources.push(workerOrigin+'/ff-calendar?week='+_ffWeek);
+  // Try multiple FF CDN hosts as fallback
   sources.push('https://nfs.faireconomy.media/ff_calendar_'+_ffWeek+'week.json');
+  sources.push('https://cdn-nfs.faireconomy.media/ff_calendar_'+_ffWeek+'week.json');
   for(const src of sources){
-    try{const r=await fetch(src);if(r.ok){data=await r.json();break;}}catch(x){}
+    try{
+      const r=await fetch(src);
+      if(r.ok){data=await r.json();break;}
+      else lastErr=`HTTP ${r.status} from ${src}`;
+    }catch(x){lastErr=x.message||String(x);}
   }
   if(!data){
-    const workerSnippet=`if(url.pathname==='/ff-calendar'){\n  const w=url.searchParams.get('week')||'this';\n  const r=await fetch('https://nfs.faireconomy.media/ff_calendar_'+w+'week.json');\n  const b=await r.text();\n  return new Response(b,{headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'public,max-age=300'}});\n}`;
     root.innerHTML=`<div style="padding:24px;max-width:600px">
       <div style="color:var(--down);font-weight:600;margin-bottom:8px">Could not load Forex Factory data</div>
-      <div style="font-size:12px;color:var(--fg-3);margin-bottom:12px">Add this route to your Cloudflare Worker (paste it near the top of your worker's fetch handler, before existing routes):</div>
-      <pre style="background:var(--bg-3);padding:14px;border-radius:6px;font-size:11px;overflow-x:auto;white-space:pre;color:var(--fg-1)">${workerSnippet}</pre>
-      <div style="font-size:11px;color:var(--fg-3);margin-top:8px">After saving the worker, click This Week or Next Week again.</div>
+      <div style="font-size:12px;color:var(--fg-3);margin-bottom:8px">Error: ${lastErr||'Network error'}</div>
+      <div style="font-size:12px;color:var(--fg-3);margin-bottom:4px">Worker URL in settings: <code style="background:var(--bg-3);padding:2px 5px;border-radius:3px">${workerOrigin||'not set'}</code></div>
+      <div style="font-size:11px;color:var(--fg-3);margin-top:12px">Make sure your Cloudflare Worker is saved with the /ff-calendar route, then try again.</div>
     </div>`;
     return;
   }
