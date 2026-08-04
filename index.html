@@ -723,7 +723,7 @@ tr:hover .row-actions{opacity:1}
         <span class="lbl">Settings</span>
       </button>
     </div>
-    <div style="text-align:center;padding:12px 0 14px;font-size:10px;color:var(--fg-3);letter-spacing:.4px;opacity:.6"><!-- APP_VERSION -->App Version 1.0.59<!-- /APP_VERSION --></div>
+    <div style="text-align:center;padding:12px 0 14px;font-size:10px;color:var(--fg-3);letter-spacing:.4px;opacity:.6"><!-- APP_VERSION -->App Version 1.0.60<!-- /APP_VERSION --></div>
   </aside>
 
   <!-- TOPBAR -->
@@ -953,7 +953,6 @@ tr:hover .row-actions{opacity:1}
         </div>
         <div class="seg" style="margin-bottom:14px">
           <button id="eco-tab-eco" onclick="switchEcoView('eco')">Economic Calendar</button>
-          <button id="eco-tab-ff" onclick="switchEcoView('ff')">Forex Factory</button>
           <button id="eco-tab-gold" class="active" onclick="switchEcoView('gold')">Gold Macro Radar</button>
         </div>
         <div id="eco-view-eco" style="display:none">
@@ -962,16 +961,6 @@ tr:hover .row-actions{opacity:1}
               <div class="tradingview-widget-container__widget" style="height:100%"></div>
             </div>
           </div>
-        </div>
-        <div id="eco-view-ff" style="display:none">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-            <div class="seg" style="margin:0">
-              <button id="ff-week-this" class="active" onclick="loadFFCalendar('this')">This Week</button>
-              <button id="ff-week-next" onclick="loadFFCalendar('next')">Next Week</button>
-            </div>
-            <div id="ff-filter-wrap" style="display:flex;gap:4px;flex-wrap:wrap"></div>
-          </div>
-          <div id="ff-calendar-root"></div>
         </div>
         <div id="eco-view-gold">
           <div id="gold-radar-root"></div>
@@ -2947,121 +2936,15 @@ function stopGoldRadar(){
 function switchEcoView(view){
   const evEco=document.getElementById('eco-view-eco');
   const evGold=document.getElementById('eco-view-gold');
-  const evFF=document.getElementById('eco-view-ff');
   const tbEco=document.getElementById('eco-tab-eco');
   const tbGold=document.getElementById('eco-tab-gold');
-  const tbFF=document.getElementById('eco-tab-ff');
   if(!evEco)return;
   evEco.style.display=view==='eco'?'':'none';
   evGold.style.display=view==='gold'?'':'none';
-  if(evFF)evFF.style.display=view==='ff'?'':'none';
   if(tbEco)tbEco.classList.toggle('active',view==='eco');
   if(tbGold)tbGold.classList.toggle('active',view==='gold');
-  if(tbFF)tbFF.classList.toggle('active',view==='ff');
   if(view==='eco'){stopGoldRadar();loadEcoCalendar();}
-  else if(view==='ff'){stopGoldRadar();if(!_ffData)loadFFCalendar('this');}
   else{startGoldRadar();}
-}
-
-// ── Forex Factory Calendar ────────────────────────────────
-let _ffWeek='this',_ffFilter='ALL',_ffData=null;
-async function loadFFCalendar(week){
-  _ffWeek=week||'this';
-  const btnThis=document.getElementById('ff-week-this');
-  const btnNext=document.getElementById('ff-week-next');
-  if(btnThis)btnThis.classList.toggle('active',_ffWeek==='this');
-  if(btnNext)btnNext.classList.toggle('active',_ffWeek==='next');
-  const root=document.getElementById('ff-calendar-root');
-  root.innerHTML='<div style="text-align:center;padding:48px;color:var(--fg-3);font-size:13px">Loading Forex Factory…</div>';
-  const {worker}=getR2Config();
-  let data=null,lastErr='';
-  // Use URL origin so stored path (e.g. /upload) doesn't break the route
-  const workerOrigin=worker?new URL(worker).origin:null;
-  const sources=[];
-  if(workerOrigin)sources.push(workerOrigin+'/ff-calendar?week='+_ffWeek);
-  // Try multiple FF CDN hosts as fallback
-  sources.push('https://nfs.faireconomy.media/ff_calendar_'+_ffWeek+'week.json');
-  sources.push('https://cdn-nfs.faireconomy.media/ff_calendar_'+_ffWeek+'week.json');
-  for(const src of sources){
-    try{
-      const r=await fetch(src);
-      if(r.ok){data=await r.json();break;}
-      else lastErr=`HTTP ${r.status} from ${src}`;
-    }catch(x){lastErr=x.message||String(x);}
-  }
-  if(!data){
-    const isNextWeek=_ffWeek==='next';
-    root.innerHTML=`<div style="padding:24px;max-width:600px">
-      <div style="color:var(--down);font-weight:600;margin-bottom:8px">${isNextWeek?'Next week calendar not available yet':'Could not load Forex Factory data'}</div>
-      <div style="font-size:12px;color:var(--fg-3);margin-bottom:8px">${isNextWeek?'Forex Factory usually publishes next week\'s schedule on Thursday or Friday.':'Error: '+(lastErr||'Network error')}</div>
-      ${!isNextWeek?`<div style="font-size:12px;color:var(--fg-3);margin-bottom:4px">Worker URL in settings: <code style="background:var(--bg-3);padding:2px 5px;border-radius:3px">${workerOrigin||'not set'}</code></div>`:''}
-    </div>`;
-    return;
-  }
-  _ffData=data;
-  renderFFCalendar(data);
-}
-function renderFFCalendar(data){
-  const root=document.getElementById('ff-calendar-root');
-  if(!data||!data.length){root.innerHTML='<div style="text-align:center;padding:48px;color:var(--fg-3)">No events found.</div>';return;}
-  const currencies=[...new Set(data.map(e=>e.country))].filter(Boolean).sort();
-  const filterWrap=document.getElementById('ff-filter-wrap');
-  if(filterWrap){
-    filterWrap.innerHTML='';
-    ['ALL',...currencies].forEach(cc=>{
-      const b=document.createElement('button');
-      b.className='btn btn-sm'+((_ffFilter===cc)?' active':'');
-      b.style.cssText='min-width:38px;padding:3px 8px;font-size:11px';
-      b.textContent=cc;b.onclick=()=>{_ffFilter=cc;renderFFCalendar(_ffData);};
-      filterWrap.appendChild(b);
-    });
-  }
-  const filtered=_ffFilter==='ALL'?data:data.filter(e=>e.country===_ffFilter);
-  if(!filtered.length){root.innerHTML='<div style="text-align:center;padding:48px;color:var(--fg-3)">No events for this filter.</div>';return;}
-  const byDate={};
-  filtered.forEach(e=>{const d=e.date||'?';if(!byDate[d])byDate[d]=[];byDate[d].push(e);});
-  const fmtDate=str=>{
-    try{
-      // Try direct ISO parse first (YYYY-MM-DD or full ISO)
-      const d=new Date(str.length===10?str+'T00:00:00':str);
-      if(!isNaN(d))return d.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
-      // Fallback: MM-DD-YYYY
-      const p=str.split('-');
-      const d2=new Date(parseInt(p[2]),parseInt(p[0])-1,parseInt(p[1]));
-      if(!isNaN(d2))return d2.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
-    }catch(x){}
-    return str;
-  };
-  const impactDot={High:'<span style="color:#ff5470">●</span>',Medium:'<span style="color:#f59e0b">●</span>',Low:'<span style="color:var(--fg-3)">●</span>'};
-  const fmtActual=(actual,forecast)=>{
-    if(!actual||actual==='')return'<span style="color:var(--fg-3)">—</span>';
-    if(!forecast)return actual;
-    const a=parseFloat(actual),f=parseFloat(forecast);
-    if(!isNaN(a)&&!isNaN(f)){const c=a>=f?'var(--up)':'var(--down)';return`<span style="color:${c};font-weight:700">${actual}</span>`;}
-    return actual;
-  };
-  let html='<div style="overflow-x:auto">';
-  html+='<div style="min-width:540px">';
-  html+='<div style="display:grid;grid-template-columns:62px 48px 1fr 72px 72px 72px;gap:4px;padding:4px 10px 6px;font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--line);margin-bottom:8px"><div>Time</div><div>Cur</div><div>Event</div><div style="text-align:right">Actual</div><div style="text-align:right">Fcst</div><div style="text-align:right">Prev</div></div>';
-  Object.keys(byDate).sort((a,b)=>{
-    try{return new Date(a.length===10?a+'T00:00:00':a)-new Date(b.length===10?b+'T00:00:00':b);}catch(x){return 0;}
-  }).forEach(date=>{
-    html+=`<div style="font-size:10px;font-weight:700;color:var(--fg-3);text-transform:uppercase;letter-spacing:.8px;padding:10px 10px 4px">${fmtDate(date)}</div>`;
-    byDate[date].forEach(ev=>{
-      const dot=impactDot[ev.impact]||'<span style="color:var(--fg-3)">●</span>';
-      const timeStr=ev.time||'—';
-      html+=`<div style="display:grid;grid-template-columns:62px 48px 1fr 72px 72px 72px;gap:4px;align-items:center;padding:6px 10px;border-radius:5px;background:var(--bg-2);margin-bottom:2px;font-size:12px">`;
-      html+=`<div style="color:var(--fg-3);font-size:11px">${timeStr}</div>`;
-      html+=`<div style="font-weight:700;font-size:11px">${dot} ${ev.country||''}</div>`;
-      html+=`<div style="color:var(--fg-1)">${ev.title||''}</div>`;
-      html+=`<div style="text-align:right;font-size:12px">${fmtActual(ev.actual,ev.forecast)}</div>`;
-      html+=`<div style="text-align:right;color:var(--fg-3);font-size:12px">${ev.forecast||'—'}</div>`;
-      html+=`<div style="text-align:right;color:var(--fg-3);font-size:12px">${ev.previous||'—'}</div>`;
-      html+=`</div>`;
-    });
-  });
-  html+='</div></div>';
-  root.innerHTML=html;
 }
 
 // ── Service Worker ────────────────────────────────────────
