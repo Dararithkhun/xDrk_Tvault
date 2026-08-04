@@ -723,7 +723,7 @@ tr:hover .row-actions{opacity:1}
         <span class="lbl">Settings</span>
       </button>
     </div>
-    <div style="text-align:center;padding:12px 0 14px;font-size:10px;color:var(--fg-3);letter-spacing:.4px;opacity:.6"><!-- APP_VERSION -->App Version 1.0.51<!-- /APP_VERSION --></div>
+    <div style="text-align:center;padding:12px 0 14px;font-size:10px;color:var(--fg-3);letter-spacing:.4px;opacity:.6"><!-- APP_VERSION -->App Version 1.0.53<!-- /APP_VERSION --></div>
   </aside>
 
   <!-- TOPBAR -->
@@ -3178,7 +3178,7 @@ function openCropModal(file,cb){
   document.getElementById('crop-modal').style.display='flex';
   const getPos=e=>{const r=img.getBoundingClientRect();const src=e.touches?e.touches[0]:e;return{x:Math.max(0,Math.min(src.clientX-r.left,r.width)),y:Math.max(0,Math.min(src.clientY-r.top,r.height))};};
   const onStart=e=>{e.preventDefault();const p=getPos(e);_cropSx=_cropEx=p.x;_cropSy=_cropEy=p.y;_cropDragging=true;sel.style.display='none';};
-  const onMove=e=>{if(!_cropDragging)return;e.preventDefault();const p=getPos(e);_cropEx=p.x;_cropEy=p.y;const x=Math.min(_cropSx,_cropEx),y=Math.min(_cropSy,_cropEy),w=Math.abs(_cropEx-_cropSx),h=Math.abs(_cropEy-_cropSy);if(w>8&&h>8){sel.style.cssText+=`;left:${x}px;top:${y}px;width:${w}px;height:${h}px;display:block`;}};
+  const onMove=e=>{if(!_cropDragging)return;e.preventDefault();const p=getPos(e);_cropEx=p.x;_cropEy=p.y;const x=Math.min(_cropSx,_cropEx),y=Math.min(_cropSy,_cropEy),w=Math.abs(_cropEx-_cropSx),h=Math.abs(_cropEy-_cropSy);if(w>8&&h>8){sel.style.left=x+'px';sel.style.top=y+'px';sel.style.width=w+'px';sel.style.height=h+'px';sel.style.display='block';}};
   const onEnd=()=>{_cropDragging=false;};
   wrap.onpointerdown=onStart;wrap.onpointermove=onMove;wrap.onpointerup=onEnd;
   wrap.ontouchstart=onStart;wrap.ontouchmove=onMove;wrap.ontouchend=onEnd;
