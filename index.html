@@ -723,7 +723,7 @@ tr:hover .row-actions{opacity:1}
         <span class="lbl">Settings</span>
       </button>
     </div>
-    <div style="text-align:center;padding:12px 0 14px;font-size:10px;color:var(--fg-3);letter-spacing:.4px;opacity:.6"><!-- APP_VERSION -->App Version 1.0.58<!-- /APP_VERSION --></div>
+    <div style="text-align:center;padding:12px 0 14px;font-size:10px;color:var(--fg-3);letter-spacing:.4px;opacity:.6"><!-- APP_VERSION -->App Version 1.0.59<!-- /APP_VERSION --></div>
   </aside>
 
   <!-- TOPBAR -->
@@ -2990,11 +2990,11 @@ async function loadFFCalendar(week){
     }catch(x){lastErr=x.message||String(x);}
   }
   if(!data){
+    const isNextWeek=_ffWeek==='next';
     root.innerHTML=`<div style="padding:24px;max-width:600px">
-      <div style="color:var(--down);font-weight:600;margin-bottom:8px">Could not load Forex Factory data</div>
-      <div style="font-size:12px;color:var(--fg-3);margin-bottom:8px">Error: ${lastErr||'Network error'}</div>
-      <div style="font-size:12px;color:var(--fg-3);margin-bottom:4px">Worker URL in settings: <code style="background:var(--bg-3);padding:2px 5px;border-radius:3px">${workerOrigin||'not set'}</code></div>
-      <div style="font-size:11px;color:var(--fg-3);margin-top:12px">Make sure your Cloudflare Worker is saved with the /ff-calendar route, then try again.</div>
+      <div style="color:var(--down);font-weight:600;margin-bottom:8px">${isNextWeek?'Next week calendar not available yet':'Could not load Forex Factory data'}</div>
+      <div style="font-size:12px;color:var(--fg-3);margin-bottom:8px">${isNextWeek?'Forex Factory usually publishes next week\'s schedule on Thursday or Friday.':'Error: '+(lastErr||'Network error')}</div>
+      ${!isNextWeek?`<div style="font-size:12px;color:var(--fg-3);margin-bottom:4px">Worker URL in settings: <code style="background:var(--bg-3);padding:2px 5px;border-radius:3px">${workerOrigin||'not set'}</code></div>`:''}
     </div>`;
     return;
   }
@@ -3020,7 +3020,18 @@ function renderFFCalendar(data){
   if(!filtered.length){root.innerHTML='<div style="text-align:center;padding:48px;color:var(--fg-3)">No events for this filter.</div>';return;}
   const byDate={};
   filtered.forEach(e=>{const d=e.date||'?';if(!byDate[d])byDate[d]=[];byDate[d].push(e);});
-  const fmtDate=str=>{try{const p=str.split('-');return new Date(p[2],p[0]-1,p[1]).toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});}catch(x){return str;}};
+  const fmtDate=str=>{
+    try{
+      // Try direct ISO parse first (YYYY-MM-DD or full ISO)
+      const d=new Date(str.length===10?str+'T00:00:00':str);
+      if(!isNaN(d))return d.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+      // Fallback: MM-DD-YYYY
+      const p=str.split('-');
+      const d2=new Date(parseInt(p[2]),parseInt(p[0])-1,parseInt(p[1]));
+      if(!isNaN(d2))return d2.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+    }catch(x){}
+    return str;
+  };
   const impactDot={High:'<span style="color:#ff5470">●</span>',Medium:'<span style="color:#f59e0b">●</span>',Low:'<span style="color:var(--fg-3)">●</span>'};
   const fmtActual=(actual,forecast)=>{
     if(!actual||actual==='')return'<span style="color:var(--fg-3)">—</span>';
@@ -3033,7 +3044,7 @@ function renderFFCalendar(data){
   html+='<div style="min-width:540px">';
   html+='<div style="display:grid;grid-template-columns:62px 48px 1fr 72px 72px 72px;gap:4px;padding:4px 10px 6px;font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--line);margin-bottom:8px"><div>Time</div><div>Cur</div><div>Event</div><div style="text-align:right">Actual</div><div style="text-align:right">Fcst</div><div style="text-align:right">Prev</div></div>';
   Object.keys(byDate).sort((a,b)=>{
-    try{const pa=a.split('-'),pb=b.split('-');return new Date(pa[2],pa[0]-1,pa[1])-new Date(pb[2],pb[0]-1,pb[1]);}catch(x){return 0;}
+    try{return new Date(a.length===10?a+'T00:00:00':a)-new Date(b.length===10?b+'T00:00:00':b);}catch(x){return 0;}
   }).forEach(date=>{
     html+=`<div style="font-size:10px;font-weight:700;color:var(--fg-3);text-transform:uppercase;letter-spacing:.8px;padding:10px 10px 4px">${fmtDate(date)}</div>`;
     byDate[date].forEach(ev=>{
