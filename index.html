@@ -723,7 +723,7 @@ tr:hover .row-actions{opacity:1}
         <span class="lbl">Settings</span>
       </button>
     </div>
-    <div style="text-align:center;padding:12px 0 14px;font-size:10px;color:var(--fg-3);letter-spacing:.4px;opacity:.6"><!-- APP_VERSION -->App Version 1.0.54<!-- /APP_VERSION --></div>
+    <div style="text-align:center;padding:12px 0 14px;font-size:10px;color:var(--fg-3);letter-spacing:.4px;opacity:.6"><!-- APP_VERSION -->App Version 1.0.55<!-- /APP_VERSION --></div>
   </aside>
 
   <!-- TOPBAR -->
@@ -1262,20 +1262,32 @@ tr:hover .row-actions{opacity:1}
 </div><!-- /app-shell -->
 </div><!-- /app -->
 <div id="img-lightbox" onclick="closeLightbox()"><img id="img-lightbox-img" src=""><button onclick="event.stopPropagation();closeLightbox()">✕</button></div>
-<div id="crop-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.93);flex-direction:column;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;gap:12px">
-  <div style="color:#fff;font-size:13px;text-align:center">Drag to select crop area &nbsp;·&nbsp; leave blank to use full image</div>
-  <div id="crop-wrap" style="position:relative;cursor:crosshair;touch-action:none;flex-shrink:1;line-height:0">
-    <img id="crop-img" draggable="false" style="display:block;max-width:min(92vw,720px);max-height:calc(100dvh - 150px);user-select:none;pointer-events:none;border-radius:4px">
-    <div id="crop-sel" style="position:absolute;display:none;box-shadow:0 0 0 9999px rgba(0,0,0,.6);box-sizing:border-box;pointer-events:none">
-      <span style="position:absolute;top:-2px;left:-2px;width:22px;height:22px;border-top:3px solid #fff;border-left:3px solid #fff"></span>
-      <span style="position:absolute;top:-2px;right:-2px;width:22px;height:22px;border-top:3px solid #fff;border-right:3px solid #fff"></span>
-      <span style="position:absolute;bottom:-2px;left:-2px;width:22px;height:22px;border-bottom:3px solid #fff;border-left:3px solid #fff"></span>
-      <span style="position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;border-bottom:3px solid #fff;border-right:3px solid #fff"></span>
+<div id="crop-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.96);flex-direction:column;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;gap:12px">
+  <!-- Step 1: draw selection -->
+  <div id="crop-step-draw" style="display:flex;flex-direction:column;align-items:center;gap:12px;max-width:100%">
+    <div style="color:rgba(255,255,255,.65);font-size:12px;text-align:center;letter-spacing:.2px">Drag to select area &nbsp;·&nbsp; skip to use full image</div>
+    <div id="crop-wrap" style="position:relative;cursor:crosshair;touch-action:none;line-height:0;user-select:none">
+      <img id="crop-img" draggable="false" style="display:block;max-width:min(92vw,720px);max-height:calc(100dvh - 160px);user-select:none;pointer-events:none;border-radius:6px">
+      <div id="crop-sel" style="position:absolute;display:none;box-shadow:0 0 0 9999px rgba(0,0,0,.62);box-sizing:border-box;pointer-events:none">
+        <span style="position:absolute;top:-2px;left:-2px;width:22px;height:22px;border-top:3px solid #fff;border-left:3px solid #fff"></span>
+        <span style="position:absolute;top:-2px;right:-2px;width:22px;height:22px;border-top:3px solid #fff;border-right:3px solid #fff"></span>
+        <span style="position:absolute;bottom:-2px;left:-2px;width:22px;height:22px;border-bottom:3px solid #fff;border-left:3px solid #fff"></span>
+        <span style="position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;border-bottom:3px solid #fff;border-right:3px solid #fff"></span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="cancelCrop()" style="padding:10px 24px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;font-size:13px;cursor:pointer">Cancel</button>
+      <button onclick="showCropPreview()" style="padding:10px 24px;border-radius:8px;border:none;background:#22c993;color:#000;font-size:13px;font-weight:700;cursor:pointer">Preview →</button>
     </div>
   </div>
-  <div style="display:flex;gap:10px">
-    <button onclick="cancelCrop()" style="padding:9px 22px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font-size:13px;cursor:pointer">Cancel</button>
-    <button onclick="confirmCrop()" style="padding:9px 22px;border-radius:6px;border:none;background:#22c993;color:#000;font-size:13px;font-weight:700;cursor:pointer">Crop &amp; Use</button>
+  <!-- Step 2: preview before confirm -->
+  <div id="crop-step-preview" style="display:none;flex-direction:column;align-items:center;gap:12px;max-width:100%">
+    <div style="color:rgba(255,255,255,.65);font-size:12px;text-align:center;letter-spacing:.2px">Cropped preview — looks good?</div>
+    <img id="crop-preview-img" draggable="false" style="display:block;max-width:min(92vw,720px);max-height:calc(100dvh - 180px);border-radius:6px;object-fit:contain">
+    <div style="display:flex;gap:10px">
+      <button onclick="cropBack()" style="padding:10px 24px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;font-size:13px;cursor:pointer">← Re-crop</button>
+      <button onclick="cropUseThis()" style="padding:10px 24px;border-radius:8px;border:none;background:#22c993;color:#000;font-size:13px;font-weight:700;cursor:pointer">Use this ✓</button>
+    </div>
   </div>
 </div>
 
@@ -3169,31 +3181,37 @@ async function saveTradeReflection(id){
 }
 
 // ── Crop Modal ────────────────────────────────────────────
-let _cropCb=null,_cropObjUrl=null,_cropSx=0,_cropSy=0,_cropEx=0,_cropEy=0,_cropDragging=false;
+let _cropCb=null,_cropObjUrl=null,_cropSx=0,_cropSy=0,_cropEx=0,_cropEy=0,_cropDragging=false,_cropPreviewBlob=null;
 function openCropModal(file,cb){
-  _cropCb=cb;
+  _cropCb=cb;_cropPreviewBlob=null;
   if(_cropObjUrl)URL.revokeObjectURL(_cropObjUrl);
   _cropObjUrl=URL.createObjectURL(file);
   const img=document.getElementById('crop-img');
   const sel=document.getElementById('crop-sel');
   const wrap=document.getElementById('crop-wrap');
   sel.style.display='none';_cropSx=_cropSy=_cropEx=_cropEy=0;_cropDragging=false;
-  img.onload=()=>{};
+  document.getElementById('crop-step-draw').style.display='flex';
+  document.getElementById('crop-step-preview').style.display='none';
   img.src=_cropObjUrl;
   document.getElementById('crop-modal').style.display='flex';
-  const getPos=e=>{const r=img.getBoundingClientRect();const src=e.touches?e.touches[0]:e;return{x:Math.max(0,Math.min(src.clientX-r.left,r.width)),y:Math.max(0,Math.min(src.clientY-r.top,r.height))};};
-  const onStart=e=>{e.preventDefault();const p=getPos(e);_cropSx=_cropEx=p.x;_cropSy=_cropEy=p.y;_cropDragging=true;sel.style.display='none';};
+  const getPos=e=>{
+    const r=img.getBoundingClientRect();
+    const cx=e.touches&&e.touches.length?e.touches[0].clientX:e.clientX;
+    const cy=e.touches&&e.touches.length?e.touches[0].clientY:e.clientY;
+    return{x:Math.max(0,Math.min(cx-r.left,r.width)),y:Math.max(0,Math.min(cy-r.top,r.height))};
+  };
+  const onStart=e=>{e.preventDefault();const p=getPos(e);_cropSx=_cropEx=p.x;_cropSy=_cropEy=p.y;_cropDragging=true;sel.style.display='none';if(e.pointerId!=null)try{wrap.setPointerCapture(e.pointerId);}catch(x){}};
   const onMove=e=>{if(!_cropDragging)return;e.preventDefault();const p=getPos(e);_cropEx=p.x;_cropEy=p.y;const x=Math.min(_cropSx,_cropEx),y=Math.min(_cropSy,_cropEy),w=Math.abs(_cropEx-_cropSx),h=Math.abs(_cropEy-_cropSy);if(w>8&&h>8){sel.style.left=x+'px';sel.style.top=y+'px';sel.style.width=w+'px';sel.style.height=h+'px';sel.style.display='block';}};
   const onEnd=()=>{_cropDragging=false;};
-  wrap.onpointerdown=onStart;wrap.onpointermove=onMove;wrap.onpointerup=onEnd;
-  wrap.ontouchstart=onStart;wrap.ontouchmove=onMove;wrap.ontouchend=onEnd;
+  if(window.PointerEvent){
+    wrap.onpointerdown=onStart;wrap.onpointermove=onMove;wrap.onpointerup=onEnd;wrap.onpointercancel=onEnd;
+    wrap.ontouchstart=null;wrap.ontouchmove=null;wrap.ontouchend=null;
+  }else{
+    wrap.ontouchstart=onStart;wrap.ontouchmove=onMove;wrap.ontouchend=onEnd;
+    wrap.onpointerdown=null;wrap.onpointermove=null;wrap.onpointerup=null;
+  }
 }
-function cancelCrop(){
-  document.getElementById('crop-modal').style.display='none';
-  if(_cropObjUrl){URL.revokeObjectURL(_cropObjUrl);_cropObjUrl=null;}
-  _cropCb=null;
-}
-function confirmCrop(){
+function _buildCropCanvas(){
   const img=document.getElementById('crop-img');
   const sel=document.getElementById('crop-sel');
   const scale=img.naturalWidth/img.getBoundingClientRect().width;
@@ -3203,13 +3221,40 @@ function confirmCrop(){
   const sw=hasCrop?Math.abs(_cropEx-_cropSx)*scale:img.naturalWidth;
   const sh=hasCrop?Math.abs(_cropEy-_cropSy)*scale:img.naturalHeight;
   const MAX=1280;const ratio=Math.min(1,MAX/Math.max(sw,sh));
-  const canvas=document.createElement('canvas');
-  canvas.width=Math.round(sw*ratio);canvas.height=Math.round(sh*ratio);
-  canvas.getContext('2d').drawImage(img,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
+  const c=document.createElement('canvas');
+  c.width=Math.round(sw*ratio);c.height=Math.round(sh*ratio);
+  c.getContext('2d').drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);
+  return c;
+}
+function showCropPreview(){
+  _buildCropCanvas().toBlob(blob=>{
+    _cropPreviewBlob=blob;
+    const url=URL.createObjectURL(blob);
+    const prev=document.getElementById('crop-preview-img');
+    prev.onload=()=>URL.revokeObjectURL(url);
+    prev.src=url;
+    document.getElementById('crop-step-draw').style.display='none';
+    document.getElementById('crop-step-preview').style.display='flex';
+  },'image/jpeg',0.92);
+}
+function cropBack(){
+  _cropPreviewBlob=null;
+  document.getElementById('crop-step-preview').style.display='none';
+  document.getElementById('crop-step-draw').style.display='flex';
+}
+function cropUseThis(){
   document.getElementById('crop-modal').style.display='none';
   if(_cropObjUrl){URL.revokeObjectURL(_cropObjUrl);_cropObjUrl=null;}
-  canvas.toBlob(blob=>{if(_cropCb&&blob)_cropCb(blob);_cropCb=null;},'image/jpeg',0.92);
+  const blob=_cropPreviewBlob;_cropPreviewBlob=null;
+  if(_cropCb&&blob)_cropCb(blob);
+  _cropCb=null;
 }
+function cancelCrop(){
+  document.getElementById('crop-modal').style.display='none';
+  if(_cropObjUrl){URL.revokeObjectURL(_cropObjUrl);_cropObjUrl=null;}
+  _cropPreviewBlob=null;_cropCb=null;
+}
+function confirmCrop(){cropUseThis();}
 
 // ── AI OCR (OpenRouter) ───────────────────────────────────
 function triggerOCR(){
