@@ -723,7 +723,7 @@ tr:hover .row-actions{opacity:1}
         <span class="lbl">Settings</span>
       </button>
     </div>
-    <div style="text-align:center;padding:12px 0 14px;font-size:10px;color:var(--fg-3);letter-spacing:.4px;opacity:.6"><!-- APP_VERSION -->App Version 1.0.53<!-- /APP_VERSION --></div>
+    <div style="text-align:center;padding:12px 0 14px;font-size:10px;color:var(--fg-3);letter-spacing:.4px;opacity:.6"><!-- APP_VERSION -->App Version 1.0.54<!-- /APP_VERSION --></div>
   </aside>
 
   <!-- TOPBAR -->
@@ -1266,7 +1266,12 @@ tr:hover .row-actions{opacity:1}
   <div style="color:#fff;font-size:13px;text-align:center">Drag to select crop area &nbsp;·&nbsp; leave blank to use full image</div>
   <div id="crop-wrap" style="position:relative;cursor:crosshair;touch-action:none;flex-shrink:1;line-height:0">
     <img id="crop-img" draggable="false" style="display:block;max-width:min(92vw,720px);max-height:calc(100dvh - 150px);user-select:none;pointer-events:none;border-radius:4px">
-    <div id="crop-sel" style="position:absolute;display:none;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.52);box-sizing:border-box;pointer-events:none"></div>
+    <div id="crop-sel" style="position:absolute;display:none;box-shadow:0 0 0 9999px rgba(0,0,0,.6);box-sizing:border-box;pointer-events:none">
+      <span style="position:absolute;top:-2px;left:-2px;width:22px;height:22px;border-top:3px solid #fff;border-left:3px solid #fff"></span>
+      <span style="position:absolute;top:-2px;right:-2px;width:22px;height:22px;border-top:3px solid #fff;border-right:3px solid #fff"></span>
+      <span style="position:absolute;bottom:-2px;left:-2px;width:22px;height:22px;border-bottom:3px solid #fff;border-left:3px solid #fff"></span>
+      <span style="position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;border-bottom:3px solid #fff;border-right:3px solid #fff"></span>
+    </div>
   </div>
   <div style="display:flex;gap:10px">
     <button onclick="cancelCrop()" style="padding:9px 22px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font-size:13px;cursor:pointer">Cancel</button>
